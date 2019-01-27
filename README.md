@@ -4,13 +4,10 @@
 
 **Author:** [Lee Kelvin](mailto:l.s.kelvin@ljmu.ac.uk)
 
-## Description
-The astro package provides a series of functions, tools and routines in everyday use within astronomy. Broadly speaking, one may group these functions into 7 main areas, namely: cosmology; FITS file manipulation; the Sersic function; plotting; data handling and manipulation; statistics, and; general convenience functions and scripting tools.
+**Maintainer:** [Lee Kelvin](mailto:l.s.kelvin@ljmu.ac.uk)
 
-**Depends:** R (>= 3.1.2)
+## Description
+A series of functions, tools and routines for everyday use within astronomy, e.g.: cosmology; FITS file manipulation; the Sersic function; plotting; data handling/manipulation; statistics, and; general convenience functions and scripting tools.
 
 **License:** GPL (>= 3)
 
-**Encoding:** UTF-8
-
-**LazyData:** true
