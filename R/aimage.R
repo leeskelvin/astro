@@ -1,4 +1,4 @@
-aimage = function(input, xcen = NA, ycen = NA, xdim = NA, ydim = NA, scale.type = "linear", scale.mode = 100, scale.lo = NA, scale.hi = NA, cmap = "sls", ...){
+aimage = function(input, xcen = NA, ycen = NA, xdim = NA, ydim = NA, scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, scale.probs = NA, col.map = "grey", col.alpha=1, col.invert = FALSE, asp = 1, ...){
     
     # force convert to list
     if(typeof(input)=="double" | typeof(input)=="integer"){
@@ -39,82 +39,100 @@ aimage = function(input, xcen = NA, ycen = NA, xdim = NA, ydim = NA, scale.type 
     }
     
     # apply transformations
+    ref = tgrid = NA
     mgrid = as.list(rep(NA,length(input)))
     for(i in 1:length(input)){
         
         # rescale to linear range {0,1} (soft limits)
         slim = quantile(lgrid[[i]],probs=c((50-(scale.mode/2))/100,(50+(scale.mode/2))/100),na.rm=TRUE)
-        ilo = c(rep(scale.lo, length(input))[i],slim[1],NA); ilo = ilo[!is.na(ilo)][1]
-        ihi = c(rep(scale.hi, length(input))[i],slim[2],NA); ihi = ihi[!is.na(ihi)][1]
+        ilo = c(rep(scale.lo,length(input))[i],slim[1],NA); ilo = ilo[!is.na(ilo)][1]
+        ihi = c(rep(scale.hi,length(input))[i],slim[2],NA); ihi = ihi[!is.na(ihi)][1]
         igrid = (lgrid[[i]] - ilo) / (ihi - ilo)
         
-        # apply scaling function
-        if(scale.type == "lin" | scale.type == "linear"){
-            fgrid = igrid
-            mlo = 0
-            mhi = 1
-            ref = quantile(c(mlo,mhi), probs=seq(0.1,0.9,by=0.1)) / 1
+        # setup calibration points
+        calib = switch(scale.type, lin=1, log=500, pow=1, atan=5, asinh=10, sinh=3)
+        imdat = igrid * calib
+        lo = 0 * calib
+        hi = 1 * calib
+        
+        # scaling functions
+        if(scale.type == "lin"){
+            fdat = imdat
+            flo = lo
+            fhi = hi
+            ref = quantile(c(ilo,ihi), probs=(quantile(c(flo,fhi),probs=scale.probs)/calib))
         }else if(scale.type == "log"){
-            fgrid = suppressWarnings(log10((igrid * 500) + 0.5))
-            mlo = log10((0 * 500) + 0.5)
-            mhi = log10((1 * 500) + 0.5)
-            ref = (10^(quantile(c(mlo,mhi), probs=seq(0.1,0.9,by=0.1))) - 0.5) / 500
+            slide = 0.5
+            fdat = log10(imdat + slide)
+            flo = log10(lo + slide)
+            fhi = log10(hi + slide)
+            ref = quantile(c(ilo,ihi), probs=((10^(quantile(c(flo,fhi),probs=scale.probs))-slide)/calib))
+        }else if(scale.type == "pow"){
+            fdat = imdat^scale.pow
+            flo = lo^scale.pow
+            fhi = hi^scale.pow
+            ref = quantile(c(ilo,ihi), probs=((quantile(c(flo,fhi),probs=scale.probs)^(1/scale.pow))/calib))
+        }else if(scale.type == "atan"){
+            fdat = atan(imdat)
+            flo = atan(lo)
+            fhi = atan(hi)
+            ref = quantile(c(ilo,ihi), probs=((tan(quantile(c(flo,fhi),probs=scale.probs)))/calib))
+        }else if(scale.type == "asinh"){
+            fdat = asinh(imdat)
+            flo = asinh(lo)
+            fhi = asinh(hi)
+            ref = quantile(c(ilo,ihi), probs=((sinh(quantile(c(flo,fhi),probs=scale.probs)))/calib))
+        }else if(scale.type == "sinh"){
+            fdat = sinh(imdat)
+            flo = sinh(lo)
+            fhi = sinh(hi)
+            ref = quantile(c(ilo,ihi), probs=((asinh(quantile(c(flo,fhi),probs=scale.probs)))/calib))
         }else{
-            
+            stop("unknown aimage scale.type function applied")
         }
         
-        print(ref)
-        
-        # rescale to modified range (0,1) (hard limits)
-        mgrid[[i]] = (fgrid - mlo) / (mhi - mlo)
+        # rescale to colour-appropriate range (0,255) (hard limits)
+        mgrid[[i]] = 255 * ((fdat - flo) / (fhi - flo))
         if(any(mgrid[[i]] < 0)){mgrid[[i]][mgrid[[i]] < 0] = 0}
-        if(any(mgrid[[i]] > 1)){mgrid[[i]][mgrid[[i]] > 1] = 1}
-        
-        
-#        calib = switch(func, lin=1, log=500, pow=1, atan=5, asinh=10, sinh=3) / soft
-#        
-#        # scaling functions
-#        if(func == "lin"){
-#            fdat = imdat
-#            flo = lo
-#            fhi = hi
-#            ref = quantile(c(flo,fhi), probs=probs) / calib # reference probabilities
-#        }else if(func == "log"){
-#            slide = 0.5
-#            fdat = log10(imdat + slide)
-#            flo = log10(lo + slide)
-#            fhi = log10(hi + slide)
-#            ref = (10^(quantile(c(flo,fhi), probs=probs)) - slide) / calib
-#        }else if(func == "pow"){
-#            fdat = imdat^pow
-#            flo = lo^pow
-#            fhi = hi^pow
-#            ref = (quantile(c(flo,fhi), probs=probs)^(1/pow)) / calib
-#        }else if(func == "atan"){
-#            fdat = atan(imdat)
-#            flo = atan(lo)
-#            fhi = atan(hi)
-#            ref = (tan(quantile(c(flo,fhi), probs=probs))) / calib
-#        }else if(func == "asinh"){
-#            fdat = asinh(imdat)
-#            flo = asinh(lo)
-#            fhi = asinh(hi)
-#            ref = (sinh(quantile(c(flo,fhi), probs=probs))) / calib
-#        }else if(func == "sinh"){
-#            fdat = sinh(imdat)
-#            flo = sinh(lo)
-#            fhi = sinh(hi)
-#            ref = (asinh(quantile(c(flo,fhi), probs=probs))) / calib
-#        }else{
-#            stop("unknown aimage function applied")
-#        }
-#        
-#        
+        if(any(mgrid[[i]] > 255)){mgrid[[i]][mgrid[[i]] > 255] = 255}
+        if(col.invert){mgrid[[i]] = 255 - mgrid[[i]]}
+        if(i == 1){tgrid = mgrid[[i]]}else{tgrid = tgrid + mgrid[[i]]}
         
     }
+    tgrid = tgrid / length(mgrid)
+    
+    # generate colours
+    if(col.map == "grey" | col.map == "gray"){
+        red = green = blue = as.vector(tgrid)
+        hsvmat = rgb2hsv(
+            r=round(red), 
+            g=round(green), 
+            b=round(blue)
+        )
+    }else if(col.map == "sls"){
+        hsvmat = rgb2hsv(col2rgb(sls(256)[tgrid + 1]))
+    }else if(col.map == "rainbow"){
+        hsvmat = rgb2hsv(col2rgb(rainbow(256)[tgrid + 1]))
+    }else if(col.map == "heat"){
+        hsvmat = rgb2hsv(col2rgb(heat.colors(256)[tgrid + 1]))
+    }else if(col.map == "terrain"){
+        hsvmat = rgb2hsv(col2rgb(terrain.colors(256)[tgrid + 1]))
+    }else if(col.map == "topo"){
+        hsvmat = rgb2hsv(col2rgb(topo.colors(256)[tgrid + 1]))
+    }else if(col.map == "cm"){
+        hsvmat = rgb2hsv(col2rgb(cm.colors(256)[tgrid + 1]))
+    }
+    col = hsv(h=hsvmat["h",], s=hsvmat["s",], v=hsvmat["v",], alpha=col.alpha)
     
     # image
-    image(x=as.numeric(rownames(igrid)), y=as.numeric(colnames(igrid)), z=igrid, ...)
+    x = as.numeric(rownames(lgrid[[1]]))
+    y = as.numeric(colnames(lgrid[[1]]))
+    image(x=x, y=y, z=matrix(1:length(col),nrow=nrow(mgrid[[1]]),ncol=ncol(mgrid[[1]])), col=col, asp=asp, ...)
+    
+    # probs
+    if(!is.na(ref[1])){
+        return(ref)
+    }
     
 }
 
