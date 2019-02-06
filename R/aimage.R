@@ -1,6 +1,8 @@
-aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, scale.probs = NA, col.map = "rgb", col.alpha=1, col.invert = FALSE, asp = 1, ...){
+aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, scale.probs = NA, col.map = "rgb", col.alpha=1, col.invert = FALSE, smooth.fwhm = 0, smooth.filter = "gauss", desat.limit = 0, desat.fwhm = 3, desat.filter = "gauss", asp = 1, ...){
     
-    # library(astro); input=c("calexp-HSC-I-8283-38.stamp.fits","calexp-HSC-R-8283-38.stamp.fits","calexp-HSC-G-8283-38.stamp.fits"); hdu = 1; xcen = NA; ycen = NA; xdim = NA; ydim = NA; scale.type = "log"; scale.mode = 99.5; scale.lo = NA; scale.hi = NA; scale.pow = 0.5; scale.probs = seq(0,1,by=0.5); col.map = "rgb"; col.alpha=1; col.invert = FALSE; asp = 1; i = 1
+    # library(astro); input=c("calexp-HSC-I-8283-38.stamp.fits","calexp-HSC-R-8283-38.stamp.fits","calexp-HSC-G-8283-38.stamp.fits"); hdu = 1; xcen = NA; ycen = NA; xdim = NA; ydim = NA; scale.type = "log"; scale.mode = 99.5; scale.lo = NA; scale.hi = NA; scale.pow = 0.5; scale.probs = seq(0,1,by=0.5); col.map = "rgb"; col.alpha=1; col.invert = FALSE; smooth.fwhm = 1; smooth.filter = "gauss"; desat.limit = 0.15; desat.fwhm = 3; desat.filter = "gauss"; asp = 1; i = 1
+    
+    # library(astro); mat=matrix(-500:500,1001,1001)/500; input=list(mat-0.5,mat,mat+0.5); scale.lo=-1; scale.hi=1
     
     # force convert to list
     if(typeof(input)=="double" | typeof(input)=="integer"){
@@ -70,6 +72,18 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, sc
     }
     alo = mean(ilos, na.rm=TRUE)
     ahi = mean(ihis, na.rm=TRUE)
+    
+    # smoothing? (can be time consuming)
+    # NB: sigma_req^2 = sigma_final^2 + sigma_initial^2
+    if(smooth.fwhm > 0){
+        for(i in 1:length(input)){
+            xnames = rownames(input.mapped[[i]])
+            ynames = colnames(input.mapped[[i]])
+            input.mapped[[i]] = smooth2d(input.mapped[[i]], fwhm=smooth.fwhm, filter=smooth.filter)
+            rownames(input.mapped[[i]]) = xnames
+            colnames(input.mapped[[i]]) = ynames
+        }
+    }
     
     # generate average image
     input.avg = input.mapped[[1]]
@@ -169,11 +183,10 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, sc
             ,b=round(as.vector(blue))
         )
     }else if(col.map == "grey" | col.map == "gray"){
-        red = green = blue = input.rescaled
         hsvmat = rgb2hsv(
-            r=round(red)
-            ,g=round(green)
-            ,b=round(blue)
+            r=round(as.vector(input.rescaled))
+            ,g=round(as.vector(input.rescaled))
+            ,b=round(as.vector(input.rescaled))
         )
     }else if(col.map == "sls"){
         hsvmat = rgb2hsv(col2rgb(sls(256)[input.rescaled + 1]))
@@ -188,11 +201,20 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, sc
     }else if(col.map == "cm"){
         hsvmat = rgb2hsv(col2rgb(cm.colors(256)[input.rescaled + 1]))
     }
-    col = hsv(h=hsvmat["h",], s=hsvmat["s",], v=hsvmat["v",], alpha=col.alpha)
+    
+    # desaturate faint pixels? (to intensify colour effect at bright end)
+    if(desat.limit > 0){
+        input.blur = smooth2d(input.avg, fwhm=desat.fwhm, filter=desat.filter) / desat.limit
+        if(any(is.na(input.blur))){input.blur[which(is.na(input.blur))] = 0}
+        if(any(input.blur < 0)){input.blur[input.blur < 0] = 0}
+        if(any(input.blur > 1)){input.blur[input.blur > 1] = 1}
+        hsvmat["s",] = hsvmat["s",] * as.vector(input.blur)
+    }
     
     # image
     x = as.numeric(rownames(input.rescaled))
     y = as.numeric(colnames(input.rescaled))
+    col = hsv(h=hsvmat["h",], s=hsvmat["s",], v=hsvmat["v",], alpha=col.alpha)
     image(x=x, y=y, z=matrix(1:length(col),nrow=nrow(input.rescaled),ncol=ncol(input.rescaled)), col=col, asp=asp, ...)
     
     # return reference quantiles?
