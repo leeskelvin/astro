@@ -1,25 +1,25 @@
-\name{xastro-package}
-\alias{xastro-package}
-\alias{xastro}
+\name{astro-package}
+\alias{astro-package}
+\alias{astro}
 \docType{package}
 \title{
-\packageTitle{xastro}
+\packageTitle{astro}
 }
 \description{
-\packageDescription{xastro}
+\packageDescription{astro}
 }
 \details{
 
 The DESCRIPTION file:
-\packageDESCRIPTION{xastro}
-\packageIndices{xastro}
+\packageDESCRIPTION{astro}
+\packageIndices{astro}
 ~~ An overview of how to use the package, including the most important ~~
 ~~ functions ~~
 }
 \author{
-\packageAuthor{xastro}
+\packageAuthor{astro}
 
-Maintainer: \packageMaintainer{xastro}
+Maintainer: \packageMaintainer{astro}
 }
 \references{
 ~~ Literature or other references for background information ~~
