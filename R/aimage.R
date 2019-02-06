@@ -48,8 +48,8 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, sc
                 ynew = ynew[-yoldbad]
             }
             igrid[xnew,ynew] = input[[i]][xold,yold]
-            rownames(igrid) = xold
-            colnames(igrid) = yold
+            rownames(igrid) = (1:nrow(igrid)) + xold[1] - xnew[1]
+            colnames(igrid) = (1:ncol(igrid)) + yold[1] - ynew[1]
             input.trim[[i]] = igrid
             
         }
