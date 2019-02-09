@@ -2,8 +2,6 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, sc
     
     # library(astro); input=c("calexp-HSC-I-8283-38.stamp.fits","calexp-HSC-R-8283-38.stamp.fits","calexp-HSC-G-8283-38.stamp.fits"); hdu = 1; xcen = NA; ycen = NA; xdim = NA; ydim = NA; scale.type = "log"; scale.mode = 99.5; scale.lo = NA; scale.hi = NA; scale.pow = 0.5; scale.probs = seq(0,1,by=0.5); col.map = "rgb"; col.alpha=1; col.invert = FALSE; smooth.fwhm = 1; smooth.filter = "gauss"; desat.limit = 0.15; desat.fwhm = 3; desat.filter = "gauss"; asp = 1; i = 1
     
-    # library(astro); mat=matrix(-500:500,1001,1001)/500; input=list(mat-0.5,mat,mat+0.5); scale.lo=-1; scale.hi=1
-    
     # force convert to list
     if(typeof(input)=="double" | typeof(input)=="integer"){
         input = list(input)
@@ -70,8 +68,6 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, sc
         ilos = c(ilos, ilo)
         ihis = c(ihis, ihi)
     }
-    alo = mean(ilos, na.rm=TRUE)
-    ahi = mean(ihis, na.rm=TRUE)
     
     # smoothing? (can be time consuming)
     # NB: sigma_req^2 = sigma_final^2 + sigma_initial^2
@@ -108,33 +104,51 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, sc
         flo = lo
         fhi = hi
         input.scaled = imdat
-        ref = quantile(c(alo,ahi), probs=(quantile(c(flo,fhi),probs=scale.probs)/calib))
+        ref = {}
+        for(i in 1:length(input)){
+            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=(quantile(c(flo,fhi),probs=scale.probs)/calib)))
+        }
     }else if(scale.type == "log"){
         slide = 0.5
         flo = log10(lo + slide)
         fhi = log10(hi + slide)
         input.scaled = suppressWarnings(((log10(imdat + slide) - flo) / (fhi - flo)))
-        ref = quantile(c(alo,ahi), probs=((10^(quantile(c(flo,fhi),probs=scale.probs))-slide)/calib))
+        ref = {}
+        for(i in 1:length(input)){
+            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=((10^(quantile(c(flo,fhi),probs=scale.probs))-slide)/calib)))
+        }
     }else if(scale.type == "pow"){
         flo = lo^scale.pow
         fhi = hi^scale.pow
         input.scaled = suppressWarnings(((imdat^scale.pow - flo) / (fhi - flo)))
-        ref = quantile(c(alo,ahi), probs=((quantile(c(flo,fhi),probs=scale.probs)^(1/scale.pow))/calib))
+        ref = {}
+        for(i in 1:length(input)){
+            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=((quantile(c(flo,fhi),probs=scale.probs)^(1/scale.pow))/calib)))
+        }
     }else if(scale.type == "atan"){
         flo = atan(lo)
         fhi = atan(hi)
         input.scaled = suppressWarnings(((atan(imdat) - flo) / (fhi - flo)))
-        ref = quantile(c(alo,ahi), probs=((tan(quantile(c(flo,fhi),probs=scale.probs)))/calib))
+        ref = {}
+        for(i in 1:length(input)){
+            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=((tan(quantile(c(flo,fhi),probs=scale.probs)))/calib)))
+        }
     }else if(scale.type == "asinh"){
         flo = asinh(lo)
         fhi = asinh(hi)
         input.scaled = suppressWarnings(((asinh(imdat) - flo) / (fhi - flo)))
-        ref = quantile(c(alo,ahi), probs=((sinh(quantile(c(flo,fhi),probs=scale.probs)))/calib))
+        ref = {}
+        for(i in 1:length(input)){
+            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=((sinh(quantile(c(flo,fhi),probs=scale.probs)))/calib)))
+        }
     }else if(scale.type == "sinh"){
         flo = sinh(lo)
         fhi = sinh(hi)
         input.scaled = suppressWarnings(((sinh(imdat) - flo) / (fhi - flo)))
-        ref = quantile(c(alo,ahi), probs=((asinh(quantile(c(flo,fhi),probs=scale.probs)))/calib))
+        ref = {}
+        for(i in 1:length(input)){
+            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=((asinh(quantile(c(flo,fhi),probs=scale.probs)))/calib)))
+        }
     }else{
         stop("unknown aimage scale.type function applied")
     }
