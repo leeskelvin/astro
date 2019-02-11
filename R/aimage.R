@@ -1,6 +1,6 @@
-aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, scale.probs = NA, col.map = "rgb", col.alpha=1, col.invert = FALSE, smooth.fwhm = 0, smooth.filter = "gauss", desat.limit = 0, desat.fwhm = 3, desat.filter = "gauss", asp = 1, ...){
+aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xlo = xcen-((xdim-1)/2), xhi = xcen+((xdim-1)/2), ylo = ycen-((ydim-1)/2), yhi = ycen+((ydim-1)/2), scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, scale.probs = NA, col.map = "rgb", col.alpha=1, col.invert = FALSE, smooth.fwhm = 0, smooth.filter = "gauss", desat.limit = 0, desat.fwhm = 3, desat.filter = "gauss", padvalue = NA, asp = 1, ...){
     
-    # library(astro); input=c("calexp-HSC-I-8283-38.stamp.fits","calexp-HSC-R-8283-38.stamp.fits","calexp-HSC-G-8283-38.stamp.fits"); hdu = 1; xcen = NA; ycen = NA; xdim = NA; ydim = NA; scale.type = "log"; scale.mode = 99.5; scale.lo = NA; scale.hi = NA; scale.pow = 0.5; scale.probs = seq(0,1,by=0.5); col.map = "rgb"; col.alpha=1; col.invert = FALSE; smooth.fwhm = 1; smooth.filter = "gauss"; desat.limit = 0.15; desat.fwhm = 3; desat.filter = "gauss"; asp = 1; i = 1
+    # library(astro); input=c("calexp-HSC-I-8283-38.stamp.fits","calexp-HSC-R-8283-38.stamp.fits","calexp-HSC-G-8283-38.stamp.fits"); hdu = 1; xcen = NA; ycen = NA; xdim = NA; ydim = 11; xlo = 3; xhi = 11; ylo = NA; yhi = NA; scale.type = "log"; scale.mode = 99.5; scale.lo = NA; scale.hi = NA; scale.pow = 0.5; scale.probs = seq(0,1,by=0.5); col.map = "rgb"; col.alpha=1; col.invert = FALSE; smooth.fwhm = 1; smooth.filter = "gauss"; desat.limit = 0.15; desat.fwhm = 3; desat.filter = "gauss"; padvalue = NA; asp = 1; i = 1
     
     # force convert to list
     if(typeof(input)=="double" | typeof(input)=="integer"){
@@ -21,26 +21,56 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, sc
     
     # trim image dimensions (if required)
     input.trim = input
+    xlo = rep(xlo, length(input))[1:length(input)]
+    xhi = rep(xhi, length(input))[1:length(input)]
+    ylo = rep(ylo, length(input))[1:length(input)]
+    yhi = rep(yhi, length(input))[1:length(input)]
     if(any(!is.na(c(xcen,ycen,xdim,ydim)))){
-        
         for(i in 1:length(input)){
-            
-            # setup
             ixcen=c(rep(xcen,length(input))[i],(dim(input[[i]])[1]+1)/2,NA);ixcen=ixcen[!is.na(ixcen)][1]
             iycen=c(rep(ycen,length(input))[i],(dim(input[[i]])[2]+1)/2,NA);iycen=iycen[!is.na(iycen)][1]
             ixdim=c(rep(xdim,length(input))[i],dim(input[[i]])[1],NA);ixdim=ceiling(ixdim[!is.na(ixdim)][1])
             iydim=c(rep(ydim,length(input))[i],dim(input[[i]])[2],NA);iydim=ceiling(iydim[!is.na(iydim)][1])
-            igrid = matrix(NA, nrow=ixdim, ncol=iydim)
+            if(is.na(xlo[i]) & is.na(xhi[i])){
+                xlo[i] = ixcen - ((ixdim-1)/2)
+                xhi[i] = ixcen + ((ixdim-1)/2)
+            }else if(is.na(xlo[i])){
+                xlo[i] = xhi[i] - ixdim + 1
+            }else if(is.na(xhi[i])){
+                xhi[i] = xlo[i] + ixdim -1
+            }
+            if(is.na(ylo[i]) & is.na(yhi[i])){
+                ylo[i] = iycen - ((iydim-1)/2)
+                yhi[i] = iycen + ((iydim-1)/2)
+            }else if(is.na(ylo[i])){
+                ylo[i] = yhi[i] - iydim + 1
+            }else if(is.na(yhi[i])){
+                yhi[i] = ylo[i] + iydim -1
+            }
+        }
+    }
+    if(any(!is.na(c(xlo,xhi,ylo,yhi)))){
+        
+        for(i in 1:length(input)){
+            
+            # setup
+            ixlo = c(rep(xlo,length(input))[i],1,NA); ixlo = ixlo[!is.na(ixlo)][1]
+            ixhi = c(rep(xhi,length(input))[i],dim(input[[i]])[1],NA); ixhi = ixhi[!is.na(ixhi)][1]
+            iylo = c(rep(ylo,length(input))[i],1,NA); iylo = iylo[!is.na(iylo)][1]
+            iyhi = c(rep(yhi,length(input))[i],dim(input[[i]])[2],NA); iyhi = iyhi[!is.na(iyhi)][1]
+            ixdim = length(ceiling(ixlo : ixhi))
+            iydim = length(ceiling(iylo : iyhi))
+            igrid = matrix(padvalue, nrow=ixdim, ncol=iydim)
             
             # translate data to igrid and up to input.trim
-            xold = ceiling((ixcen - ((ixdim-1)/2)) : (ixcen + ((ixdim-1)/2)))
+            xold = ceiling(ixlo : ixhi)
             xnew = (((dim(igrid)[1]+1)/2) - ((ixdim-1)/2)) : (((dim(igrid)[1]+1)/2) + ((ixdim-1)/2))
             xoldbad = which(!xold %in% 1:dim(input[[i]])[1])
             if(length(xoldbad) > 0){
                 xold = xold[-xoldbad]
                 xnew = xnew[-xoldbad]
             }
-            yold = ceiling((iycen - ((iydim-1)/2)) : (iycen + ((iydim-1)/2)))
+            yold = ceiling(iylo : iyhi)
             ynew = (((dim(igrid)[2]+1)/2) - ((iydim-1)/2)) : (((dim(igrid)[2]+1)/2) + ((iydim-1)/2))
             yoldbad = which(!yold %in% 1:dim(input[[i]])[2])
             if(length(yoldbad) > 0){
@@ -48,8 +78,8 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, sc
                 ynew = ynew[-yoldbad]
             }
             igrid[xnew,ynew] = input[[i]][xold,yold]
-            rownames(igrid) = (1:nrow(igrid)) + xold[1] - xnew[1]
-            colnames(igrid) = (1:ncol(igrid)) + yold[1] - ynew[1]
+            rownames(igrid) = (1:nrow(igrid)) + ixlo - 1
+            colnames(igrid) = (1:ncol(igrid)) + iylo - 1
             input.trim[[i]] = igrid
             
         }
