@@ -4,7 +4,9 @@ aplot = function(..., axes = TRUE, side = 1:4, xat = NULL, yat = NULL, labels = 
     
     box(col=col.box, lty=lty.box, lwd=lwd.box)
     
-    aaxes(side=side, xat=xat, yat=yat, labels=labels, tick=tick, lwd=lwd, lwd.ticks=lwd.ticks, xformat=xformat, yformat=yformat, xdigits=xdigits, ydigits=ydigits, xnmin=xnmin, ynmin=ynmin, xunlog=xunlog, yunlog=yunlog, las=las, lend=lend, mgp=mgp, tcl=tcl, tcl.min=tcl.min)
+    if(axes){
+        aaxes(side=side, xat=xat, yat=yat, labels=labels, tick=tick, lwd=lwd, lwd.ticks=lwd.ticks, xformat=xformat, yformat=yformat, xdigits=xdigits, ydigits=ydigits, xnmin=xnmin, ynmin=ynmin, xunlog=xunlog, yunlog=yunlog, las=las, lend=lend, mgp=mgp, tcl=tcl, tcl.min=tcl.min)
+    }
     
 }
 
