@@ -15,8 +15,8 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xl
         if(typeof(input[[i]]) == "character"){
             input[[i]] = read.fits(input[[i]], hdu=rep(hdu,length(input))[i])$dat[[1]]
         }
-        rownames(input[[i]]) = 1:nrow(input[[i]])
-        colnames(input[[i]]) = 1:ncol(input[[i]])
+        if(is.null(rownames(input[[i]]))){rownames(input[[i]]) = 1:nrow(input[[i]])}
+        if(is.null(colnames(input[[i]]))){colnames(input[[i]]) = 1:ncol(input[[i]])}
     }
     
     # trim image dimensions (if required)

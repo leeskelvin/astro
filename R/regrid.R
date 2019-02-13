@@ -1,107 +1,29 @@
-# function to subdivide a matrix into multiple sub pixels
-regrid = function(data, fact = 0.5, norm = FALSE){
+regrid = function(mat, fact = 0.5){
     
-    # factor splitting
-    if(length(fact) == 1){
-        fact = c(fact,fact)
-    }
+    # setup
+    ff = rep(fact,2)[1:2]
+    if(any(ff<1)){ff[ff<1] = 1/round(1/ff[ff<1])}
+    if(any(ff>1)){ff[ff>1] = round(ff[ff>1])}
+    out = mat
     
-    # function to manipulate (expand/contract) a single dimension of a matrix
-    matmanip = function(data, dim = 1, fact = 2){
-        
-        # factor integerisation (factor = out/in)
-        if(fact < 1){
-            fact = 1/round(1/fact)
-        }else{
-            fact = round(fact)
-        }
-        
-        # dimension fix?
-        inputdata = data
-        if(dim!=1){
-            inputdata = t(inputdata)
-        }
-        
-        # dimensions and data arrays
-        oldxdim = dim(inputdata)[1]
-        oldydim = dim(inputdata)[2]
-        olddim = oldxdim
-        inputwt = matrix(1, nrow=oldxdim, ncol=oldydim)
-        newdim = ceiling(olddim*fact)
-        tempdata = matrix(0, nrow=newdim, ncol=oldydim)
-        tempwt = matrix(1, nrow=newdim, ncol=oldydim)
-        fact = newdim / olddim
-        
-        # expand?
-        if(fact > 1){
-            
-            oldindex = rep(1:olddim, each=fact)
-            newindex = 1:newdim
-            tempdata[newindex,] = inputdata[oldindex,]
-            tempwt = tempwt * fact
-            if(dim!=1){
-                tempdata = t(tempdata)
-                tempwt = t(tempwt)
-            }
-            
-            # normalise
-            tempdata = tempdata / tempwt
-            
-        # contract
-        }else if(fact < 1){
-            
-            mult = olddim / newdim
-            mdiff = (mult - round(mult))
-            tempdata = inputdata
-            #tempwt = inputwt
-            # add extra rows if needed
-            if(mdiff != 0){
-                tempdim = newdim * ceiling(mult)
-                newlines = tempdim - olddim
-                tempdata = padmatrix(inputdata, xlo=0, ylo=0, xhi=newlines, yhi=0)
-                #tempwt = padmatrix(inputwt, xlo=0, ylo=0, xhi=newlines, yhi=0)
-                oldxdim = dim(tempdata)[1]
-                oldydim = dim(tempdata)[2]
-                olddim = oldxdim
-                fact = newdim / olddim
-            }
-            cellsize = 1/fact
-            nx = cellsize
-            ny = newdim
-            nz = dim(tempdata)[2]
-            tempdata = colSums(array(tempdata, dim=c(nx, ny, nz)))
-            #tempwt = colSums(array(tempwt, dim=c(nx, ny, nz))) / cellsize
-            if(dim!=1){
-                tempdata = t(tempdata)
-                #tempwt = t(tempwt)
-            }
-            
-        # no change?
-        }else{
-            
-            tempdata = data
-            #tempwt = inputwt
-            
-        }
-        
-        # return data
-        return(tempdata)
-        
-    }
+    # x-expand/y-expand/x-contract/y-contract
+    if(ff[1] > 1){out = out[rep(1:nrow(out),each=ff[1]),] / ff[1]}
+    if(ff[2] > 1){out = out[,rep(1:ncol(out),each=ff[2])] / ff[2]}
+    if(ff[1] < 1){out = rowsum(out, group=round(seq(1,ceiling(nrow(out)*ff[1]),len=nrow(mat))))}
+    if(ff[2] < 1){out = t(rowsum(t(out), group=round(seq(1,ceiling(ncol(out)*ff[2]),len=ncol(mat)))))}
     
-    # manipulate x first
-    data1 = matmanip(data, dim=1, fact=fact[1])
+    # rownames/colnames
+    if(is.null(rownames(mat))){xr = 1:nrow(mat)}else{xr = rownames(mat)}
+    if(is.null(colnames(mat))){yr = 1:ncol(mat)}else{yr = colnames(mat)}
+    xrstep = c(diff(xr)[1]/2, 0.5, NA); xrstep = xrstep[-which(is.na(xrstep))][1]
+    yrstep = c(diff(yr)[1]/2, 0.5, NA); yrstep = yrstep[-which(is.na(yrstep))][1]
+    xrnew = approx(x=c(xr[1]-xrstep,xr+xrstep), n=2*nrow(out)+1)$y[seq(2,2*nrow(out),by=2)]
+    yrnew = approx(x=c(yr[1]-yrstep,yr+yrstep), n=2*ncol(out)+1)$y[seq(2,2*ncol(out),by=2)]
+    rownames(out) = xrnew
+    colnames(out) = yrnew
     
-    # manipulate y second
-    data2 = matmanip(data1, dim=2, fact=fact[2])
-    
-    # normalise?
-    if(norm){
-        data2 = data2 * (fact[1] * fact[2])
-    }
-    
-    # return data
-    return(data2)
+    # finish up
+    return(out)
     
 }
 
