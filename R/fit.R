@@ -1,8 +1,17 @@
 fit = function(y, func, par1, par2, ..., sigma = 1){
     
-    chisq = function(obs, exp, sig){
-        return(sum(((obs-exp)/sig)^2))
+    minfunc = function(args1, args2, func, exp, sig){
+        
+        chisq = function(obs, exp, sig){
+            return(sum(((obs-exp)/sig)^2))
+        }
+        
+        obs = do.call(what=func, args=c(args1,args2))
+        
+        return(chisq(obs=obs, exp=exp, sig=sig))
+        
     }
+    
     
     out = nlm(f=chisq, p=as.numeric(par1), obs=do.call(what=func, args=c(par2,par1)), exp=y, sig=1)
     
