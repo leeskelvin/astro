@@ -1,16 +1,16 @@
-fit = function(y, func, vars, pars = {}, ..., sigma = 1){
+fit = function(data, par, fn, arg = {}, ..., sigma = 1){
     
     # chi-squared function to be minimised
-    minfunc = function(argvals, argnames, extras, func, exp, sig){
+    minfunc = function(parvals, parnames, arg, func, exp, sig){
         
         # chi-squared statistic
         chisq = function(obs, exp, sig){
             return(sum(((obs - exp) / sig)^2))
         }
         
-        # reconstitute args as list and run
-        args = split(argvals, argnames)
-        obs = do.call(what=func, args=c(args,extras))
+        # reconstitute par as list, generate obs data, and setup sigmas
+        par = split(parvals, parnames)
+        obs = do.call(what=func, args=c(par,arg))
         sig = rep(sig,length(obs))[1:length(obs)]
         
         # finish up
@@ -18,13 +18,22 @@ fit = function(y, func, vars, pars = {}, ..., sigma = 1){
         
     }
     
-    # split vars into numeric vector and name vector (necessary due to optim requirement)
-    argvals = as.numeric(unlist(vars))
-    argnames = rep(names(vars), times=as.numeric(sapply(vars, length)))
+    # split vars into numeric vector and name vector (faffing necessary due to optim requirement)
+    parvals = as.numeric(unlist(par))
+    parnames = rep(names(par), times=as.numeric(sapply(par, length)))
     
-    # run optim, reconstitute output parameters as named list
-    out = optim(par=argvals, fn=minfunc, argnames=argnames, extras=pars, func=func, exp=y, sig=sigma, ...)
-    out$par = split(as.numeric(out$par), argnames)
+    # run optim, reconstitute output parameters
+    out = suppressWarnings(optim(par=parvals, fn=minfunc, parnames=parnames, arg=arg, func=fn, exp=data, sig=sigma, ...))
+    out$par = split(as.numeric(out$par), parnames)
+    out$par = out$par[match(names(out$par), names(par))] # order into same order as input
+    
+    # output formatting
+    names(out)[which(names(out)=="value")] = "chi2"
+    df = length(data) - length(parvals)
+    chi2nu = as.numeric(out$chi2) / df
+    p = pchisq(q=as.numeric(out$chi2),df=df)
+    out = c(out, df=df, chi2nu=chi2nu, p=p)
+    out = out[c("par","chi2","df","chi2nu","p","counts","convergence","message")]
     return(out)
     
 }
