@@ -1,6 +1,4 @@
-gauss1d = function(x, mean = 0, fwhm = 1, sd = fwhm / (2*(sqrt(2*log(2)))), scale = 1){
-    scale = rep(scale, length(sd))[1:length(sd)]
-    out = sapply(X=x, FUN=dnorm, mean=mean, sd=sd) * scale
-    return(colSums(rbind(out)))
+gauss1d = function(r, I0 = 1, fwhm = 1, sd = fwhm / (2*(sqrt(2*log(2))))){
+    return(colSums(rbind(sapply(X=r, FUN=function(r, I0, sd){ return( I0 * exp( (-r^2) / (2*sd^2) ) ) }, I0=I0, sd=sd))))
 }
 
