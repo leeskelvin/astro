@@ -5,7 +5,7 @@ fit = function(data, par, fn, arg = {}, ..., sigma = 1){
         
         # chi-squared statistic
         chisq = function(obs, exp, sig){
-            return(sum(((obs - exp) / sig)^2))
+            return(sum(((obs - exp) / sig)^2, na.rm=TRUE))
         }
         
         # reconstitute par as list, generate obs data, and setup sigmas
