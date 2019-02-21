@@ -67,3 +67,4 @@ label = function(x, y = NULL, lab, inset = 0.5, adj = c(0.75,0.75), col = "grey5
     text(x=xx, y=yy, labels=lab, adj=adj, col=col, ...)
     
 }
+
