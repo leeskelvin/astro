@@ -1,4 +1,22 @@
-bars = function(x, y, width = 1, ...){
+bars = function(x, y, width = 1, anchor = 1, joined = TRUE, ...){
+    
+    bw = rep(width, length(x))[1:length(x)]
+    
+    if(anchor %in% c(1,3)){
+        
+        if(joined){
+            xx = c(x[1]-bw[1]/2, x[1]-bw[1]/2, rep(x+bw/2,each=2))
+        }else{
+            xx = c(rep(x-bw/2, each=2), x[length(x)]+bw/2)
+        }
+        
+    }else{
+        
+        
+        
+    }
+    
+    
     
     if(width < 0){ # contiguous region
         
