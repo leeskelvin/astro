@@ -1,4 +1,4 @@
-aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks = 1, format = NA, digits = 2, nmin = 0, unlog = FALSE, las = 0, lend = 3, mgp = c(2.5,0.5,0), tcl = 0.5, tcl.min = 0.25, ...){
+aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks = 1, format = NA, digits = 2, nmin = 0, unlog = FALSE, las = 0, lend = 3, mgp = c(2,0.25,0), tcl = 0.5, tcl.min = 0.25, ...){
     
     # generate tick locations
     if(is.null(at)){at = axTicks(side)}
