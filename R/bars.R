@@ -1,10 +1,14 @@
-bars = function(x, y, width = 1, size = width, anchor = 1, joined = FALSE, col="grey50", border="grey75", ...){
+bars = function(x, y, width, anchor = 1, joined = FALSE, col = "grey75", border = NA, ljoin = 1, ...){
     
-    bhw = rep(size, length(x))[1:length(x)] / 2
+    # setup
+    if(missing(width) & anchor %in% c(1,3)){width = c(diff(x)[1],diff(x))}
+    if(missing(width) & anchor %in% c(2,4)){width = c(diff(y)[1],diff(y))}
+    bhw = rep(width, length(x))[1:length(x)] / 2
     base = switch(anchor, par("usr")[3], par("usr")[1], par("usr")[4], par("usr")[2])
     if(par("ylog") & anchor %in% c(1,3)){base = 10^base}
     if(par("xlog") & anchor %in% c(2,4)){base = 10^base}
     
+    # define xy coords
     if(anchor %in% c(1,3)){
         if(joined){
             xx = list(c(x[1]-bhw[1], x[1]-bhw[1], rep(x[-length(x)]+diff(x)/2,each=2), x[length(x)]+bhw[(length(x))], x[length(x)]+bhw[length(x)]))
@@ -31,7 +35,7 @@ bars = function(x, y, width = 1, size = width, anchor = 1, joined = FALSE, col="
     
     # polygon
     for(i in 1:length(xx)){
-        polygon(x=xx[[i]], y=yy[[i]], col=col, border=border, ...)
+        polygon(x=xx[[i]], y=yy[[i]], col=col, border=border, ljoin=ljoin, ...)
     }
     
 }
