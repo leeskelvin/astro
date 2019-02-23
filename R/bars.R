@@ -1,42 +1,37 @@
-bars = function(x, y, width = 1, anchor = 1, joined = TRUE, ...){
+bars = function(x, y, width = 1, size = width, anchor = 1, joined = FALSE, col="grey50", border="grey75", ...){
     
-    bw = rep(width, length(x))[1:length(x)]
+    bhw = rep(size, length(x))[1:length(x)] / 2
+    base = switch(anchor, par("usr")[3], par("usr")[1], par("usr")[4], par("usr")[2])
+    if(par("ylog") & anchor %in% c(1,3)){base = 10^base}
+    if(par("xlog") & anchor %in% c(2,4)){base = 10^base}
     
     if(anchor %in% c(1,3)){
-        
         if(joined){
-            xx = c(x[1]-bw[1]/2, x[1]-bw[1]/2, rep(x+bw/2,each=2))
+            xx = list(c(x[1]-bhw[1], x[1]-bhw[1], rep(x[-length(x)]+diff(x)/2,each=2), x[length(x)]+bhw[(length(x))], x[length(x)]+bhw[length(x)]))
+            yy = list(c(base, rep(y,each=2), base))
         }else{
-            xx = c(rep(x-bw/2, each=2), x[length(x)]+bw/2)
+            xx = yy = {}
+            for(i in 1:length(x)){
+                xx = c(xx, list(c(x[i]-bhw[i], x[i]-bhw[i], x[i]+bhw[i], x[i]+bhw[i])))
+                yy = c(yy, list(c(base, y[i], y[i], base)))
+            }
         }
-        
     }else{
-        
-        
-        
+        if(joined){
+            xx = list(c(base, rep(x,each=2), base))
+            yy = list(c(y[1]-bhw[1], y[1]-bhw[1], rep(y[-length(y)]+diff(y)/2,each=2), y[length(y)]+bhw[(length(bhw))], y[length(y)]+bhw[(length(bhw))]))
+        }else{
+            xx = yy = {}
+            for(i in 1:length(y)){
+                xx = c(xx, list(c(base, x[i], x[i], base)))
+                yy = c(yy, list(c(x[i]-bhw[i], y[i]-bhw[i], y[i]+bhw[i], y[i]+bhw[i])))
+            }
+        }
     }
     
-    
-    
-    if(width < 0){ # contiguous region
-        
-        bw = -width/2
-        xx = c( x[1]-bw, rep(x[-length(x)]+diff(x)/2,each=2), x[length(x)]+bw )
-        xx = c( xx, rev(xx) )
-        yy = c( rep(y,each=2), rep(par("usr")[3],len=2*length(y)) )
-        polygon(x=xx, y=yy, ...)
-        
-    }else{ # stand alone bars
-        
-        cfr = par("pin") / (par("cin")[2]) # number of fractional character heights
-        pxy = diff(par("usr"))[c(1,3)] # plot region in xy coordinates
-        sxy = (pxy / cfr) # character step size in xy coordinates
-        bw = sxy[1] * width/2
-        
-        for(i in 1:length(x)){
-            polygon(x=c(x[i]-bw,x[i]-bw,x[i]+bw,x[i]+bw), y=c(par("usr")[3],y[i],y[i],par("usr")[3]), ...)
-        }
-        
+    # polygon
+    for(i in 1:length(xx)){
+        polygon(x=xx[[i]], y=yy[[i]], col=col, border=border, ...)
     }
     
 }
