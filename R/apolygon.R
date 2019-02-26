@@ -5,6 +5,8 @@ apolygon = function(x, y, ...){
     xlog = par("xlog")
     ylog = par("ylog")
     usr = par("usr")
+    xaxp = par("xaxp")
+    yaxp = par("yaxp")
     
     if(xlog){
         xx=log10(x)
@@ -23,6 +25,8 @@ apolygon = function(x, y, ...){
     if(xlog){par("xlog"=TRUE)}
     if(ylog){par("ylog"=TRUE)}
     par("usr"=usr)
+    par("xaxp"=xaxp)
+    par("yaxp"=yaxp)
     
 }
 
