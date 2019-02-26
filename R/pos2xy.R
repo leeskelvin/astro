@@ -5,32 +5,33 @@ pos2xy = function(x, y = NULL, inset = 0.5, adj = NA){
         adj = rep(adj,2)[1:2]
         if(is.character(x)){
             cfr = par("pin") / (par("cin")[2]) # number of fractional character heights
-            pxy = diff(par("usr"))[c(1,3)] # plot region in xy coordinates
+            usr = par("usr")
+            pxy = diff(usr)[c(1,3)] # plot region in xy coordinates
             ixy = (pxy / cfr) * rep(inset,2)[1:2] # inset in xy coordinates
-            xx = rep(par("usr")[1] + (pxy[1]/2), length(x))[1:length(x)]
-            yy = rep(par("usr")[3] + (pxy[2]/2), length(y))[1:length(y)]
+            xx = rep(usr[1] + (pxy[1]/2) + ixy[1], length(x))[1:length(x)]
+            yy = rep(usr[3] + (pxy[2]/2) + ixy[2], length(y))[1:length(y)]
             if(length(grep("left",x)) > 0){
-                xx[grep("left",x)] = par("usr")[1] + ixy[1]
+                xx[grep("left",x)] = usr[1] + ixy[1]
                 if(is.na(adj[1])){adj[1] = 0}
             }
             if(length(grep("right",x)) > 0){
-                xx[grep("right",x)] = par("usr")[2] - ixy[1]
+                xx[grep("right",x)] = usr[2] - ixy[1]
                 if(is.na(adj[1])){adj[1] = 1}
             }
             if(length(grep("left",x))==0 & length(grep("right",x))==0){
-                #xx = par("usr")[1] + (pxy[1]/2)
+                #xx = usr[1] + (pxy[1]/2)
                 if(is.na(adj[1])){adj[1] = 0.5}
             }
             if(length(grep("top",x)) > 0){
-                yy[grep("top",x)] = par("usr")[4] - ixy[2]
+                yy[grep("top",x)] = usr[4] - ixy[2]
                 if(is.na(adj[2])){adj[2] = 1}
             }
             if(length(grep("bottom",x)) > 0){
-                yy[grep("bottom",x)] = par("usr")[3] + ixy[2]
+                yy[grep("bottom",x)] = usr[3] + ixy[2]
                 if(is.na(adj[2])){adj[2] = 0}
             }
             if(length(grep("top",x))==0 & length(grep("bottom",x))==0){
-                #yy = par("usr")[3] + (pxy[2]/2)
+                #yy = usr[3] + (pxy[2]/2)
                 if(is.na(adj[2])){adj[2] = 0.5}
             }
         }else{
@@ -40,6 +41,8 @@ pos2xy = function(x, y = NULL, inset = 0.5, adj = NA){
             if(is.na(adj[1])){adj[1] = 0.5}
             if(is.na(adj[2])){adj[2] = 0.5}
         }
+        if(par("xlog")){xx = 10^xx}
+        if(par("ylog")){yy = 10^yy}
         return(list(x=xx, y=yy, adj=adj))
     }
     
