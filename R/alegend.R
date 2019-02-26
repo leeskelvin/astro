@@ -52,8 +52,21 @@ alegend = function(x, y = NULL, legend, type = list(), inset = 0.5, seg.len = 1.
         ym = xy$y - yinset - (i-1)*ixy[2]
         yt = xy$y - yinset - (i-1)*ixy[2] + fillhalfheight
         yb = xy$y - yinset - (i-1)*ixy[2] - fillhalfheight
-        xlb = xl #xm - ixy[1]/2.5
-        xrb = xr #xm + ixy[1]/2.5
+        xlb = xl # xm - fillhalfheight
+        xrb = xr # xm + hillhalfheight
+        
+        # subscript/superscript text offset correction
+        yoffset = subadd = supadd = 0
+        if(typeof(legend[[i]]) == "language"){
+            hassub = length(grep("\\[",legend[[i]])) > 0
+            hassup = length(grep("\\^",legend[[i]])) > 0
+            if(hassub){subadd = strheight(bquote(x[3]),cex=cex)-strheight(bquote(x),cex=cex)}
+            totheight = strheight(legend[[i]],cex=cex)
+            trueheight = strheight(bquote(.(gsub("\\^","",paste(gsub("\n", "", legend[[i]]),collapse="")))),cex=cex)
+            if(hassup){supadd = totheight - trueheight - subadd}
+            if(hassub){yoffset = yoffset - subadd/2}
+            if(hassup){yoffset = yoffset + supadd/2}
+        }
         
         # line/point/fill
         if(length(type) >= i){
@@ -69,7 +82,7 @@ alegend = function(x, y = NULL, legend, type = list(), inset = 0.5, seg.len = 1.
         }
         
         # text
-        text(x=xt, y=ym, labels=bquote(.(legend[[i]])), adj=c(0,0.5), cex=cex)
+        text(x=xt, y=ym+yoffset, labels=bquote(.(legend[[i]])), adj=c(0,0.5), cex=cex)
         
     }
     
