@@ -1,4 +1,4 @@
-aaxes = function(side = 1:4, xat = NULL, yat = NULL, labels = 1:2, tick = TRUE, lwd = 0, lwd.ticks = 1, xformat = NA, yformat = NA, xdigits = 2, ydigits = 2, xnmin = 0, ynmin = 0, xunlog = FALSE, yunlog = FALSE, las = 0, lend = 3, mgp = c(2,0.25,0), tcl = 0.5, tcl.min = 0.25, col.box = "grey75", lty.box = "solid", lwd.box = 2, ...){
+aaxes = function(side = 1:4, xat = NULL, yat = NULL, labels = 1:2, tick = TRUE, lwd = 0, lwd.ticks = 1, xformat = NA, yformat = NA, xdigits = 2, ydigits = 2, xnmin = 0, ynmin = 0, xunlog = FALSE, yunlog = FALSE, las = 0, lend = 3, mgp = c(2,0.25,0), tcl = 0.5, tcl.min = 0.25, ...){
     
     # loop
     for(i in 1:4){
@@ -33,8 +33,6 @@ aaxes = function(side = 1:4, xat = NULL, yat = NULL, labels = 1:2, tick = TRUE, 
         }
         
     }
-    
-    box(col=col.box, lty=lty.box, lwd=lwd.box)
     
 }
 
