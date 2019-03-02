@@ -1,11 +1,15 @@
 aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks = 1, fn = function(x){return(x)}, format = NA, digits = 2, nmin = 0, unlog = FALSE, las = 0, lend = 3, mgp = c(2,0.25,0), tcl = 0.5, tcl.min = 0.25, ...){
     
     # generate tick locations
-    usr.real = switch(side, par("usr")[1:2], par("usr")[3:4], par("usr")[1:2], par("usr")[3:4])
-    usr.func = fn(switch(side, par("usr")[1:2], par("usr")[3:4], par("usr")[1:2], par("usr")[3:4]))
+    xusr = ifelse(rep(par("xlog"),2),10^par("usr")[1:2],par("usr")[1:2])
+    yusr = ifelse(rep(par("ylog"),2),10^par("usr")[3:4],par("usr")[3:4])
+    usr.real = switch(side, xusr, yusr, xusr, yusr)
+    usr.reals = approx(usr.real, n=1001)$y
+    usr.funcs = suppressWarnings(fn(usr.reals))
+    bad = which(is.na(usr.funcs))
+    if(length(bad) > 0){usr.reals = usr.reals[-bad]; usr.funcs = usr.funcs[-bad]}
+    usr.func = range(usr.funcs, na.rm=T)
     if(is.null(at)){at = pretty(usr.func)}
-    if(any(at < min(usr.func))){at = at[-which(at < min(usr.func))]}
-    if(any(at > max(usr.func))){at = at[-which(at > max(usr.func))]}
     stepby = sign(at[2]-at[1])
     
     # logged axes tick locations
@@ -27,10 +31,11 @@ aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks
         }
     }
     
-    # convert fnat to at
-    at.real = quantile(usr.real, probs=(at-usr.func[1])/(diff(usr.func)))
-    
     # major tick marks
+    if(any(at < min(usr.func))){at = at[-which(at < min(usr.func))]}
+    if(any(at > max(usr.func))){at = at[-which(at > max(usr.func))]}
+    fn.inv = ifelse(identical(usr.real,usr.func), fn, inverse(fn=fn, interval=usr.reals))
+    at.real = fn.inv(at)
     axis(side, at=at.real, labels=FALSE, tick=tick, lwd=lwd, lwd.ticks=lwd.ticks, las=las, lend=lend, mgp=mgp, tcl=tcl, ...)
     
     # tick labels
@@ -48,7 +53,7 @@ aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks
                     ilab = formatC(ilab, format=format, digits=digits)
                 }
             }
-            axis(side, at=at[i], labels=ilab, tick=FALSE, lwd=lwd, lwd.ticks=lwd.ticks, las=las, lend=lend, mgp=mgp, tcl=tcl, ...)
+            axis(side, at=at.real[i], labels=ilab, tick=FALSE, lwd=lwd, lwd.ticks=lwd.ticks, las=las, lend=lend, mgp=mgp, tcl=tcl, ...)
         }
     }
     
@@ -70,7 +75,10 @@ aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks
             at.all = approx(xat, n=ntick)$y
             at.min = at.all[-which(at.all %in% xat)]
         }
-        axis(side, at=at.min, labels=FALSE, tick=tick, lwd=lwd, lwd.ticks=lwd.ticks, las=las, lend=lend, mgp=mgp, tcl=tcl.min, ...)
+        if(any(at.min < min(usr.func))){at.min = at.min[-which(at.min < min(usr.func))]}
+        if(any(at.min > max(usr.func))){at.min = at.min[-which(at.min > max(usr.func))]}
+        at.min.real = fn.inv(at.min)
+        axis(side, at=at.min.real, labels=FALSE, tick=tick, lwd=lwd, lwd.ticks=lwd.ticks, las=las, lend=lend, mgp=mgp, tcl=tcl.min, ...)
         
     }
     
