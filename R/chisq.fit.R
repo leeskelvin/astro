@@ -1,11 +1,11 @@
-fit = function(data, par, fn, arg = {}, ..., sigma = 1){
+chisq.fit = function(data, par, fn, arg = {}, ..., sigma = 1){
     
     # chi-squared function to be minimised
     minfunc = function(parvals, parnames, arg, func, exp, sig){
         
         # chi-squared statistic
         chisq = function(obs, exp, sig){
-            return(sum(((obs - exp) / sig)^2, na.rm=TRUE))
+            return(sum( ( (obs - exp)^2 ) / ( (sig^2) ), na.rm=TRUE) )
         }
         
         # reconstitute par as list, generate obs data, and setup sigmas

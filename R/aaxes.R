@@ -6,7 +6,7 @@ aaxes = function(side = 1:4, xat = NULL, yat = NULL, labels = 1:2, tick = TRUE, 
         if(i %in% side){
             
             # labels
-            ilab = ifelse(i %in% ilab, TRUE, FALSE)
+            ilab = ifelse(i %in% labels, TRUE, FALSE)
             
             # x/y splitting
             if(i %in% c(1,3)){
