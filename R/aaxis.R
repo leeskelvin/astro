@@ -1,4 +1,4 @@
-aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks = 1, fn = function(x){return(x)}, format = NA, digits = 2, nmin = 0, unlog = FALSE, las = 0, lend = 3, mgp = c(2,0.25,0), tcl = 0.5, tcl.min = 0.25, ...){
+aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks = 1, fn = function(x){return(x)}, format = NA, digits = 2, nmin = 0, unlog = FALSE, las = 0, lend = 3, mgp = c(2,0.25,0), tcl = 0.4, tcl.min = 0.25, ...){
     
     # generate tick locations
     xusr = ifelse(rep(par("xlog"),2),10^par("usr")[1:2],par("usr")[1:2])
@@ -10,25 +10,14 @@ aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks
     if(length(bad) > 0){usr.reals = usr.reals[-bad]; usr.funcs = usr.funcs[-bad]}
     usr.func = range(usr.funcs, na.rm=T)
     if(is.null(at)){at = pretty(usr.func)}
-    stepby = sign(at[2]-at[1])
+    stepsign = sign(at[2]-at[1])
     
     # logged axes tick locations
-    islogged = FALSE
-    if(side %in% c(1,3)){
-        if(par("xlog")){
-            at = 10^((floor(usr.func)[1]-stepby):(ceiling(usr.func)[2]+stepby))
-            islogged = TRUE
-        }else if(unlog){
-            at = (floor(usr.func)[1]-stepby):(ceiling(usr.func)[2]+stepby)
-        }
-    }
-    if(side %in% c(2,4)){
-        if(par("ylog")){
-            at = 10^((floor(usr.func)[1]-stepby):(ceiling(usr.func)[2]+stepby))
-            islogged = TRUE
-        }else if(unlog){
-            at = (floor(usr.func)[1]-stepby):(ceiling(usr.func)[2]+stepby)
-        }
+    islogged = ifelse((side%in%c(1,3)&par("xlog"))|(side%in%c(2,4)&par("ylog")), TRUE, FALSE)
+    if(islogged){
+        at = 10^((floor(log10(usr.func[1]))-stepsign) : (ceiling(log10(usr.func[2]))-stepsign))
+    }else if(unlog){
+        at = (floor(usr.func[1])-stepsign) : (ceiling(usr.func[2])-stepsign)
     }
     
     # major tick marks
@@ -61,11 +50,11 @@ aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks
     if(nmin > 0 | islogged | unlog){
         
         if(islogged){
-            xat = c(log10(at[1])-stepby, log10(at), log10(at[length(at)])+stepby)
+            xat = c(log10(at[1])-stepsign, log10(at), log10(at[length(at)])+stepsign)
             at.all = expand.grid(log10(2:9), xat)
             at.min = 10^(at.all[,1] + at.all[,2])
         }else if(unlog){
-            xat = c(at[1]-stepby, at, at[length(at)]+stepby)
+            xat = c(at[1]-stepsign, at, at[length(at)]+stepsign)
             at.all = expand.grid(log10(2:9), xat)
             at.min = at.all[,1] + at.all[,2]
         }else{

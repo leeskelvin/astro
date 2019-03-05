@@ -74,7 +74,7 @@ alegend = function(x, y = NULL, legend, type = list(), inset = 0.5, seg.len = 1.
                 do.call(what=lines, args=c(list(x=c(xl,xr), y=c(ym,ym)), type[[i]]))
             }
             if(names(type)[i] == "p" | names(type)[i] == "b"){
-                do.call(what=points, args=c(list(x=xm, y=ym, cex=cex), type[[i]]))
+                do.call(what=points, args=c(list(x=xm, y=ym), type[[i]]))
             }
             if(names(type)[i] == "f"){
                 do.call(what=apolygon, args=c(list(x=c(xlb,xlb,xrb,xrb), y=c(yb,yt,yt,yb)), type[[i]]))

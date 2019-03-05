@@ -10,15 +10,18 @@ apolygon = function(x, y, ...){
     
     if(xlog){
         xx=log10(x)
-        if(any(x<10^(par("usr")[1]))){xx[x<10^(par("usr")[1])] = log10((10^(par("usr")[1]))/10)}
         par("xlog"=FALSE)
     }
     if(ylog){
         yy = log10(y)
-        if(any(y<10^(par("usr")[3]))){yy[y<10^(par("usr")[3])] = log10((10^(par("usr")[3]))/10)}
         par("ylog"=FALSE)
     }
     par("usr"=usr)
+    
+    if(any(xx < usr[1]/10)){xx[xx < usr[1]/10] = usr[1]/10}
+    if(any(xx > usr[2]*10)){xx[xx > usr[2]*10] = usr[2]*10}
+    if(any(yy < usr[3]/10)){yy[yy < usr[3]/10] = usr[3]/10}
+    if(any(yy > usr[4]*10)){yy[yy > usr[4]*10] = usr[4]*10}
     
     polygon(x=xx, y=yy, ...)
     
