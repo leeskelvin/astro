@@ -1,4 +1,4 @@
-aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks = 1, fn = function(x){return(x)}, format = NA, digits = 2, nmin = 0, unlog = FALSE, las = 0, lend = 3, mgp = c(2,0.25,0), tcl = 0.4, tcl.min = 0.25, ...){
+aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks = 1, fn = function(x){return(x)}, format = NA, digits = 2, nmin = 0, unlog = FALSE, las = 0, lend = 1, mgp = c(2,0.25,0), tcl = 0.4, tcl.min = 0.2, ...){
     
     # generate tick locations
     xusr = ifelse(rep(par("xlog"),2),10^par("usr")[1:2],par("usr")[1:2])
@@ -15,14 +15,14 @@ aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks
     # logged axes tick locations
     islogged = ifelse((side%in%c(1,3)&par("xlog"))|(side%in%c(2,4)&par("ylog")), TRUE, FALSE)
     if(islogged){
-        at = 10^((floor(log10(usr.func[1]))-stepsign) : (ceiling(log10(usr.func[2]))-stepsign))
+        at = 10^((floor(log10(usr.func[1]))-stepsign) : (ceiling(log10(usr.func[2]))+stepsign))
     }else if(unlog){
-        at = (floor(usr.func[1])-stepsign) : (ceiling(usr.func[2])-stepsign)
+        at = (floor(usr.func[1])-stepsign) : (ceiling(usr.func[2])+stepsign)
     }
     
     # major tick marks
-    if(any(at < min(usr.func))){at = at[-which(at < min(usr.func))]}
-    if(any(at > max(usr.func))){at = at[-which(at > max(usr.func))]}
+    if(any(at < min(usr.func))){at = at[-which(at < min(usr.func))]} # req. for inv. interval below
+    if(any(at > max(usr.func))){at = at[-which(at > max(usr.func))]} # req. for inv. interval below
     fn.inv = ifelse(identical(usr.real,usr.func), fn, inverse(fn=fn, interval=usr.reals))
     at.real = fn.inv(at)
     axis(side, at=at.real, labels=FALSE, tick=tick, lwd=lwd, lwd.ticks=lwd.ticks, las=las, lend=lend, mgp=mgp, tcl=tcl, ...)
