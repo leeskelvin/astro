@@ -18,7 +18,7 @@ apoints = function(x, y = NULL, z = NULL, type = "p", col = NULL, scale.type = "
         iz = (z - ilo) / (ihi - ilo)
         
         # apply scaling function
-        input.scaled.ref = .scale.func(input=iz, scale.type=scale.type, scale.pow=scale.pow, lo=ilo, hi=ihi, scale.probs=pretty(c(0,1)))
+        input.scaled.ref = .scale.func(input=iz, scale.type=scale.type, scale.pow=scale.pow, lo=ilo, hi=ihi, scale.probs=c(0,1))
         #input.scaled = input.scaled.ref$input.scaled
         ref = input.scaled.ref$ref
         

@@ -17,11 +17,12 @@ apolygon = function(x, y, ...){
         par("ylog"=FALSE)
     }
     par("usr"=usr)
+    xusr = c(extendrange(usr[1:2],f=0.1), extendrange(usr[3:4],f=0.1))
     
-    if(any(xx < usr[1]/10)){xx[xx < usr[1]/10] = usr[1]/10}
-    if(any(xx > usr[2]*10)){xx[xx > usr[2]*10] = usr[2]*10}
-    if(any(yy < usr[3]/10)){yy[yy < usr[3]/10] = usr[3]/10}
-    if(any(yy > usr[4]*10)){yy[yy > usr[4]*10] = usr[4]*10}
+    if(any(xx < xusr[1])){xx[xx < xusr[1]] = xusr[1]}
+    if(any(xx > xusr[2])){xx[xx > xusr[2]] = xusr[2]}
+    if(any(yy < xusr[3])){yy[yy < xusr[3]] = xusr[3]}
+    if(any(yy > xusr[4])){yy[yy > xusr[4]] = xusr[4]}
     
     polygon(x=xx, y=yy, ...)
     
