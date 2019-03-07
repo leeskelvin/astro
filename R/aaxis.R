@@ -8,7 +8,7 @@ aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks
     usr.funcs = suppressWarnings(fn(usr.reals))
     bad = which(is.na(usr.funcs))
     if(length(bad) > 0){usr.reals = usr.reals[-bad]; usr.funcs = usr.funcs[-bad]}
-    usr.func = range(usr.funcs, na.rm=T)
+    usr.func = xusr.func = range(usr.funcs, na.rm=T)
     if(is.null(at)){at = pretty(usr.func)}
     stepsign = sign(at[2]-at[1])
     
@@ -19,10 +19,17 @@ aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks
     }else if(unlog){
         at = (floor(usr.func[1])-stepsign) : (ceiling(usr.func[2])+stepsign)
     }
+    if(islogged | unlog){
+        usr.reals = approx(x=c(usr.real[1]/10,usr.real[2]*10), n=1001)$y
+        xusr.funcs = suppressWarnings(fn(usr.reals))
+        bad = which(is.na(xusr.funcs))
+        if(length(bad) > 0){usr.reals = usr.reals[-bad]; xusr.funcs = xusr.funcs[-bad]}
+        xusr.func = range(xusr.funcs, na.rm=T)
+    }
     
     # major tick marks
-    if(any(at < min(usr.func))){at = at[-which(at < min(usr.func))]} # req. for inv. interval below
-    if(any(at > max(usr.func))){at = at[-which(at > max(usr.func))]} # req. for inv. interval below
+    if(any(at < min(xusr.func))){at = at[-which(at < min(xusr.func))]} # req. for inv. interval below
+    if(any(at > max(xusr.func))){at = at[-which(at > max(xusr.func))]} # req. for inv. interval below
     fn.inv = ifelse(identical(usr.real,usr.func), fn, inverse(fn=fn, interval=usr.reals))
     at.real = fn.inv(at)
     axis(side, at=at.real, labels=FALSE, tick=tick, lwd=lwd, lwd.ticks=lwd.ticks, las=las, lend=lend, mgp=mgp, tcl=tcl, ...)

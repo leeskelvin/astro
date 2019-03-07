@@ -1,4 +1,4 @@
-alegend = function(x, y = NULL, legend, type = list(), inset = 0.5, seg.len = 1.5, seg.gap = 0.5, cex = 1, bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25", ...){
+col.bar = function(x, y = NULL, legend = NULL, col.map = "topo", inset = 0.5, length = 0.9, seg.num = 9, seg.width = 1.5, seg.gap = 0.5, cex = 1, bar.lwd = 1, bar.lty = 1, bar.col = "grey25", seg.lwd = 0, seg.lty = 1, seg.col = "grey75", ...){
     
     # unlog
     opar = par()

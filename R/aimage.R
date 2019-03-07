@@ -1,4 +1,4 @@
-aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xlo = xcen-((xdim-1)/2), xhi = xcen+((xdim-1)/2), ylo = ycen-((ydim-1)/2), yhi = ycen+((ydim-1)/2), scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, scale.probs = NA, col.map = "rgb", col.alpha=1, col.invert = FALSE, smooth.fwhm = 0, smooth.filter = "gauss", desat.limit = 0, desat.fwhm = 3, desat.filter = "gauss", padvalue = NA, asp = 1, ...){
+aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xlo = xcen-((xdim-1)/2), xhi = xcen+((xdim-1)/2), ylo = ycen-((ydim-1)/2), yhi = ycen+((ydim-1)/2), scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, scale.probs = NA, col.map = "rgb", col.alpha = 1, col.invert = FALSE, smooth.fwhm = 0, smooth.filter = "gauss", desat.limit = 0, desat.fwhm = 3, desat.filter = "gauss", padvalue = NA, asp = 1, ...){
     
     # library(astro); input=c("calexp-HSC-I-8283-38.stamp.fits","calexp-HSC-R-8283-38.stamp.fits","calexp-HSC-G-8283-38.stamp.fits"); hdu = 1; xcen = NA; ycen = NA; xdim = NA; ydim = 11; xlo = 3; xhi = 11; ylo = NA; yhi = NA; scale.type = "log"; scale.mode = 99.5; scale.lo = NA; scale.hi = NA; scale.pow = 0.5; scale.probs = seq(0,1,by=0.5); col.map = "rgb"; col.alpha=1; col.invert = FALSE; smooth.fwhm = 1; smooth.filter = "gauss"; desat.limit = 0.15; desat.fwhm = 3; desat.filter = "gauss"; padvalue = NA; asp = 1; i = 1
     
@@ -126,62 +126,9 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xl
     }
     
     # apply scaling function to averaged image
-    calib = switch(scale.type, lin=1, log=500, pow=1, atan=5, asinh=10, sinh=3)
-    imdat = input.avg * calib
-    lo = 0 * calib
-    hi = 1 * calib
-    if(scale.type == "lin"){
-        flo = lo
-        fhi = hi
-        input.scaled = imdat
-        ref = {}
-        for(i in 1:length(input)){
-            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=(quantile(c(flo,fhi),probs=scale.probs)/calib)))
-        }
-    }else if(scale.type == "log"){
-        slide = 0.5
-        flo = log10(lo + slide)
-        fhi = log10(hi + slide)
-        input.scaled = suppressWarnings(((log10(imdat + slide) - flo) / (fhi - flo)))
-        ref = {}
-        for(i in 1:length(input)){
-            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=((10^(quantile(c(flo,fhi),probs=scale.probs))-slide)/calib)))
-        }
-    }else if(scale.type == "pow"){
-        flo = lo^scale.pow
-        fhi = hi^scale.pow
-        input.scaled = suppressWarnings(((imdat^scale.pow - flo) / (fhi - flo)))
-        ref = {}
-        for(i in 1:length(input)){
-            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=((quantile(c(flo,fhi),probs=scale.probs)^(1/scale.pow))/calib)))
-        }
-    }else if(scale.type == "atan"){
-        flo = atan(lo)
-        fhi = atan(hi)
-        input.scaled = suppressWarnings(((atan(imdat) - flo) / (fhi - flo)))
-        ref = {}
-        for(i in 1:length(input)){
-            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=((tan(quantile(c(flo,fhi),probs=scale.probs)))/calib)))
-        }
-    }else if(scale.type == "asinh"){
-        flo = asinh(lo)
-        fhi = asinh(hi)
-        input.scaled = suppressWarnings(((asinh(imdat) - flo) / (fhi - flo)))
-        ref = {}
-        for(i in 1:length(input)){
-            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=((sinh(quantile(c(flo,fhi),probs=scale.probs)))/calib)))
-        }
-    }else if(scale.type == "sinh"){
-        flo = sinh(lo)
-        fhi = sinh(hi)
-        input.scaled = suppressWarnings(((sinh(imdat) - flo) / (fhi - flo)))
-        ref = {}
-        for(i in 1:length(input)){
-            ref = rbind(ref,quantile(c(ilos[i],ihis[i]), probs=((asinh(quantile(c(flo,fhi),probs=scale.probs)))/calib)))
-        }
-    }else{
-        stop("unknown aimage scale.type function applied")
-    }
+    input.scaled.ref = .scale.func(input=input.avg, scale.type=scale.type, scale.pow=scale.pow, lo=ilos, hi=ihis, scale.probs=scale.probs)
+    input.scaled = input.scaled.ref$input.scaled
+    ref = input.scaled.ref$ref
     
     # rescale scaled averaged image to colour-appropriate range (0,255) (hard limits) (mono only)
     cdat = 255 * input.scaled
@@ -263,6 +210,69 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xl
     
     # return reference quantiles?
     if(!is.na(ref[1])){return(ref)}
+    
+}
+
+.scale.func = function(input, scale.type, scale.pow, los, his, scale.probs){
+    
+    calib = switch(scale.type, lin=1, log=500, pow=1, atan=5, asinh=10, sinh=3)
+    imdat = input * calib
+    lo = 0 * calib
+    hi = 1 * calib
+    if(scale.type == "lin"){
+        flo = lo
+        fhi = hi
+        input.scaled = imdat
+        ref = {}
+        for(i in 1:length(los)){
+            ref = rbind(ref,quantile(c(los[i],his[i]), probs=(quantile(c(flo,fhi),probs=scale.probs)/calib)))
+        }
+    }else if(scale.type == "log"){
+        slide = 0.5
+        flo = log10(lo + slide)
+        fhi = log10(hi + slide)
+        input.scaled = suppressWarnings(((log10(imdat + slide) - flo) / (fhi - flo)))
+        ref = {}
+        for(i in 1:length(los)){
+            ref = rbind(ref,quantile(c(los[i],his[i]), probs=((10^(quantile(c(flo,fhi),probs=scale.probs))-slide)/calib)))
+        }
+    }else if(scale.type == "pow"){
+        flo = lo^scale.pow
+        fhi = hi^scale.pow
+        input.scaled = suppressWarnings(((imdat^scale.pow - flo) / (fhi - flo)))
+        ref = {}
+        for(i in 1:length(los)){
+            ref = rbind(ref,quantile(c(los[i],his[i]), probs=((quantile(c(flo,fhi),probs=scale.probs)^(1/scale.pow))/calib)))
+        }
+    }else if(scale.type == "atan"){
+        flo = atan(lo)
+        fhi = atan(hi)
+        input.scaled = suppressWarnings(((atan(imdat) - flo) / (fhi - flo)))
+        ref = {}
+        for(i in 1:length(los)){
+            ref = rbind(ref,quantile(c(los[i],his[i]), probs=((tan(quantile(c(flo,fhi),probs=scale.probs)))/calib)))
+        }
+    }else if(scale.type == "asinh"){
+        flo = asinh(lo)
+        fhi = asinh(hi)
+        input.scaled = suppressWarnings(((asinh(imdat) - flo) / (fhi - flo)))
+        ref = {}
+        for(i in 1:length(los)){
+            ref = rbind(ref,quantile(c(los[i],his[i]), probs=((sinh(quantile(c(flo,fhi),probs=scale.probs)))/calib)))
+        }
+    }else if(scale.type == "sinh"){
+        flo = sinh(lo)
+        fhi = sinh(hi)
+        input.scaled = suppressWarnings(((sinh(imdat) - flo) / (fhi - flo)))
+        ref = {}
+        for(i in 1:length(los)){
+            ref = rbind(ref,quantile(c(los[i],his[i]), probs=((asinh(quantile(c(flo,fhi),probs=scale.probs)))/calib)))
+        }
+    }else{
+        stop("unknown aimage scale.type function applied")
+    }
+    
+    return(list(input.scaled=input.scaled, ref=ref))
     
 }
 

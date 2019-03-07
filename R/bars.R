@@ -1,8 +1,9 @@
 bars = function(x, y, width, anchor = 1, joined = FALSE, col = "grey75", border = NA, ljoin = 1, ...){
     
+    
     # unlog
-    xy = pos2xy(x=x, y=y)
     opar = par()
+    xy = pos2xy(x=x, y=y, inset=0)
     if(opar$xlog){
         xy$x = log10(xy$x)
         par("xlog"=FALSE)
