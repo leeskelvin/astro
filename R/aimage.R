@@ -213,6 +213,95 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xl
     
 }
 
+tone.map = function(input, lo = min(input), hi = max(input), scale.type = "lin", scale.pow = 0.5){
+    
+    # rescale input to (soft) range (0,1)
+    input.01 = (input - lo) / (hi - lo)
+    
+    # scaling functions
+    calib = switch(scale.type, lin=1, log=500, pow=1, atan=5, asinh=10, sinh=3)
+    input.calib = input.01 * calib
+    if(scale.type == "lin"){
+        map.lo = 0
+        map.hi = calib
+    }else if(scale.type == "log"){
+        map.lo = log10(scale.pow)
+        map.hi = log10(calib + scale.pow)
+        input.calib = suppressWarnings(log10(input.calib + scale.pow))
+    }else if(scale.type == "pow"){
+        map.lo = 0^scale.pow
+        map.hi = calib^scale.pow
+        input.calib = suppressWarnings(input.calib^scale.pow)
+    }else if(scale.type == "atan"){
+        map.lo = atan(0)
+        map.hi = atan(calib)
+        input.calib = suppressWarnings(atan(input.calib))
+    }else if(scale.type == "asinh"){
+        map.lo = asinh(0)
+        map.hi = asinh(calib)
+        input.calib = suppressWarnings(asinh(input.calib))
+    }else if(scale.type == "sinh"){
+        map.lo = sinh(0)
+        map.hi = sinh(calib)
+        input.calib = suppressWarnings(sinh(input.calib))
+    }else{
+        stop("unknown aimage scale.type function applied")
+    }
+    
+    # return
+    out = (input.calib - map.lo) / (map.hi - map.lo)
+    return(out)
+    
+}
+
+tone.unmap = function(probs, lo = 0, hi = 1, scale.type = "lin", scale.pow = 0.5){
+    
+    # scaling functions
+    calib = switch(scale.type, lin=1, log=500, pow=1, atan=5, asinh=10, sinh=3)
+    if(scale.type == "lin"){
+        map.lo = 0
+        map.hi = calib
+    }else if(scale.type == "log"){
+        map.lo = log10(scale.pow)
+        map.hi = log10(calib + scale.pow)
+    }else if(scale.type == "pow"){
+        map.lo = 0^scale.pow
+        map.hi = calib^scale.pow
+    }else if(scale.type == "atan"){
+        map.lo = atan(0)
+        map.hi = atan(calib)
+    }else if(scale.type == "asinh"){
+        map.lo = asinh(0)
+        map.hi = asinh(calib)
+    }else if(scale.type == "sinh"){
+        map.lo = sinh(0)
+        map.hi = sinh(calib)
+    }else{
+        stop("unknown aimage scale.type function applied")
+    }
+    
+    # descale
+    probs.scale = (probs * (map.hi - map.lo)) + map.lo
+    if(scale.type == "lin"){
+        probs.descale = probs.scale
+    }else if(scale.type == "log"){
+        probs.descale = suppressWarnings(10^(probs.scale) - scale.pow)
+    }else if(scale.type == "pow"){
+        probs.descale = suppressWarnings(probs.scale^(1/scale.pow))
+    }else if(scale.type == "atan"){
+        probs.descale = suppressWarnings(tan(probs.scale))
+    }else if(scale.type == "asinh"){
+        probs.descale = suppressWarnings(sinh(probs.scale))
+    }else if(scale.type == "sinh"){
+        probs.descale = suppressWarnings(asinh(probs.scale))
+    }
+    
+    # return
+    out = ((probs.descale / calib) * (hi - lo)) + lo
+    return(out)
+    
+}
+
 .scale.func = function(input, scale.type, scale.pow, los, his, scale.probs){
     
     calib = switch(scale.type, lin=1, log=500, pow=1, atan=5, asinh=10, sinh=3)
