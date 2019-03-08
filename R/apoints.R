@@ -1,4 +1,4 @@
-apoints = function(x, y = NULL, z = NULL, type = "p", col = NULL, scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, col.map = "topo", col.alpha = 1, col.invert = FALSE, ...){
+apoints = function(x, y = NULL, z = NULL, type = "p", col = NULL, scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, col.map = "rainbow", col.alpha = 1, col.invert = FALSE, ...){
     
     ref = NULL
     if(is.null(z) & is.null(col)){col = 1}
@@ -40,7 +40,7 @@ apoints = function(x, y = NULL, z = NULL, type = "p", col = NULL, scale.type = "
         }else if(col.map == "sls"){
             hsvmat = rgb2hsv(col2rgb(sls(256)[input.rescaled + 1]))
         }else if(col.map == "rainbow"){
-            hsvmat = rgb2hsv(col2rgb(rainbow(256)[input.rescaled + 1]))
+            hsvmat = rgb2hsv(col2rgb(rainbow(256,start=0,end=2/3)[input.rescaled + 1]))
         }else if(col.map == "heat"){
             hsvmat = rgb2hsv(col2rgb(heat.colors(256)[input.rescaled + 1]))
         }else if(col.map == "terrain"){
