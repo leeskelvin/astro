@@ -86,29 +86,29 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xl
         
     }
     
-    # map to linear range {0,1} (soft limits)
-    input.mapped = input.trim
-    ilos = ihis = {}
-    for(i in 1:length(input)){
-        slim = quantile(input.trim[[i]],probs=c((50-(scale.mode/2))/100,(50+(scale.mode/2))/100),na.rm=TRUE)
-        ilo = c(rep(scale.lo,length(input))[i],slim[1],NA); ilo = ilo[!is.na(ilo)][1]
-        ihi = c(rep(scale.hi,length(input))[i],slim[2],NA); ihi = ihi[!is.na(ihi)][1]
-        igrid = (input.trim[[i]] - ilo) / (ihi - ilo)
-        input.mapped[[i]] = igrid
-        ilos = c(ilos, ilo)
-        ihis = c(ihis, ihi)
-    }
-    
     # smoothing? (can be time consuming)
     # NB: sigma_req^2 = sigma_final^2 + sigma_initial^2
+    input.smoothed = input.trim
     if(smooth.fwhm > 0){
         for(i in 1:length(input)){
-            xnames = rownames(input.mapped[[i]])
-            ynames = colnames(input.mapped[[i]])
-            input.mapped[[i]] = smooth2d(input.mapped[[i]], fwhm=smooth.fwhm, filter=smooth.filter)
-            rownames(input.mapped[[i]]) = xnames
-            colnames(input.mapped[[i]]) = ynames
+            xnames = rownames(input.smoothed[[i]])
+            ynames = colnames(input.smoothed[[i]])
+            input.smoothed[[i]] = smooth2d(input.smoothed[[i]], fwhm=smooth.fwhm, filter=smooth.filter)
+            rownames(input.smoothed[[i]]) = xnames
+            colnames(input.smoothed[[i]]) = ynames
         }
+    }
+    
+    # map to linear range {0,1} (soft limits)
+    input.mapped = input.smoothed
+    ilos = ihis = {}
+    for(i in 1:length(input)){
+        slim = quantile(input.mapped[[i]],probs=c((50-(scale.mode/2))/100,(50+(scale.mode/2))/100),na.rm=TRUE)
+        ilo = c(rep(scale.lo,length(input))[i],slim[1],NA); ilo = ilo[!is.na(ilo)][1]
+        ihi = c(rep(scale.hi,length(input))[i],slim[2],NA); ihi = ihi[!is.na(ihi)][1]
+        input.mapped[[i]] = (input.mapped[[i]] - ilo) / (ihi - ilo)
+        ilos = c(ilos, ilo)
+        ihis = c(ihis, ihi)
     }
     
     # generate average image

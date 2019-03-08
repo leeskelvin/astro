@@ -1,4 +1,4 @@
-col.bar = function(x = "top", y = NULL, n = 5, format = NA, digits = 2, flip = FALSE, inset = 0.5, horizontal = TRUE, bar.length = 0.9, seg.num = 9, seg.width = 1.5, seg.gap = 0.5, scale.type = "lin", scale.lo = 0, scale.hi = 1, scale.pow = 0.5, col.map = "rainbow", col.alpha = 1, col.invert = FALSE, cex = 1, bar.lwd = 1, bar.lty = 1, bar.col = "grey25", seg.lwd = 0, seg.lty = 2, seg.col = "grey25", bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25", ...){
+col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip = FALSE, inset = 0.5, horizontal = FALSE, bar.length = 0.9, seg.num = 9, seg.width = 1.5, seg.gap = 0.5, scale.type = "lin", scale.lo = 0, scale.hi = 1, scale.pow = 0.5, col.map = "rainbow", col.alpha = 1, col.invert = FALSE, cex = 1, bar.lwd = 1, bar.lty = 1, bar.col = "grey25", seg.lwd = 0, seg.lty = 2, seg.col = "grey25", bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25"){
     
     # unlog & xpd
     opar = par()
@@ -32,12 +32,7 @@ col.bar = function(x = "top", y = NULL, n = 5, format = NA, digits = 2, flip = F
             ref = formatC(ref, format=format, digits=digits)
         }
     }
-#    if(scale.lo < scale.hi){ref = rev(ref)}
-    print(as.matrix(ref))
-    print(scale.lo)
-    print(scale.hi)
-    if(scale.lo > scale.hi){ref = rev(ref)}
-    print(ref)
+    #if(scale.lo > scale.hi){ref = rev(ref)}
     ref[!1:length(ref) %in% unique(round(seq(1, seg.num, len=n)))] = NA
     
     # colour-appropriate range (0,255) (hard limits) (mono only)
@@ -98,7 +93,7 @@ col.bar = function(x = "top", y = NULL, n = 5, format = NA, digits = 2, flip = F
     
     # box
     if(bty != "n"){
-        apolygon(x=c(rep(xy$x,2),rep(xy$x+boxwidth,2)), y=c(xy$y,rep(xy$y-boxheight,2),xy$y), col=bg, border=box.col, lty=box.lty, lwd=box.lwd, ...)
+        apolygon(x=c(rep(xy$x,2),rep(xy$x+boxwidth,2)), y=c(xy$y,rep(xy$y-boxheight,2),xy$y), col=bg, border=box.col, lty=box.lty, lwd=box.lwd)
     }
     
     # segments/text
