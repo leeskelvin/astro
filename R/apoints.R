@@ -13,22 +13,19 @@ apoints = function(x, y = NULL, z = NULL, type = "p", col = NULL, scale.type = "
         
         # rescale z
         slim = quantile(z, probs=c((50-(scale.mode/2))/100, (50+(scale.mode/2))/100), na.rm=TRUE)
-        ilo = c(scale.lo,slim[1],NA); ilo = ilo[!is.na(ilo)][1]
-        ihi = c(scale.hi,slim[2],NA); ihi = ihi[!is.na(ihi)][1]
-        iz = (z - ilo) / (ihi - ilo)
+        zlo = c(scale.lo,slim[1],NA)
+        zlo = zlo[!is.na(zlo)][1]
+        zhi = c(scale.hi,slim[2],NA)
+        zhi = zhi[!is.na(zhi)][1]
         
         # apply scaling function
-        input.scaled.ref = .scale.func(input=iz, scale.type=scale.type, scale.pow=scale.pow, lo=ilo, hi=ihi, scale.probs=c(0,1))
-        #input.scaled = input.scaled.ref$input.scaled
-        ref = input.scaled.ref$ref
+        input.scaled = tone.map(input = z, lo=zlo, hi=zhi, scale.type=scale.type, scale.pow=scale.pow)
+        ref = tone.unmap(probs=c(0,1), lo=zlo, hi=zhi, scale.type=scale.type, scale.pow=scale.pow)
         
         # rescale scaled averaged image to colour-appropriate range (0,255) (hard limits) (mono only)
-        cdat = 255 * input.scaled.ref$input.scaled
-        if(any(cdat < 0, na.rm=TRUE)){cdat[cdat < 0] = 0}
-        if(any(cdat > 255, na.rm=TRUE)){cdat[cdat > 255] = 255}
-        if(any(is.na(cdat))){cdat[is.na(cdat)] = 0}
-        if(col.invert){cdat = 255 - cdat}
-        input.rescaled = cdat
+        input.rescaled = pmin(pmax(255*input.scaled,0),255)
+        if(any(is.na(input.rescaled))){input.rescaled[is.na(input.rescaled)] = 0}
+        if(col.invert){input.rescaled = 255 - input.rescaled}
         
         # hsv colour matrix
         if(col.map == "grey" | col.map == "gray"){

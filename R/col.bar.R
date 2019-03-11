@@ -20,19 +20,18 @@ col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip =
     if(box.lwd==0){box.lwd=1; box.col=NA}
     
     # apply scaling function to generate reference labels
-    ref = .scale.func(input=NA, scale.type=scale.type, scale.pow=scale.pow, lo=scale.lo, hi=scale.hi, scale.probs=seq(0, 1, len=seg.num))$ref
+    ref = tone.unmap(probs=seq(0,1,len=seg.num), lo=scale.lo, hi=scale.hi, scale.type=scale.type, scale.pow=scale.pow)
     if(!is.na(format)){
         if(format == "p"){
             tempref = {}
             for(i in 1:length(ref)){
                 tempref = c(tempref, bquote(paste(10^.(log10(ref[i])))))
             }
-            ref=tempref
+            ref = tempref
         }else{
             ref = formatC(ref, format=format, digits=digits)
         }
     }
-    #if(scale.lo > scale.hi){ref = rev(ref)}
     ref[!1:length(ref) %in% unique(round(seq(1, seg.num, len=n)))] = NA
     
     # colour-appropriate range (0,255) (hard limits) (mono only)
@@ -101,7 +100,8 @@ col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip =
         
         # xy positions
         if(horizontal){
-            xl = xy$x + xinset + (bar.height * ((i-1) / seg.num))
+            #xl = xy$x + xinset + (bar.height * ((i-1) / seg.num))
+            xl = xy$x + xinset
             xr = xy$x + xinset + (bar.height * (i / seg.num))
             xv = xy$x + xinset + (bar.height * ((2*i-1)/(2*seg.num)))
             if(!flip){
@@ -123,7 +123,8 @@ col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip =
                 xr = xy$x + boxwidth - xinset
                 xv = xy$x + boxwidth - xinset - (seg.width * ixy[1]) - (seg.gap*ixy[1])
             }
-            yt = xy$y - yinset - (bar.height * ((i-1) / seg.num))
+            #yt = xy$y - yinset - (bar.height * ((i-1) / seg.num))
+            yt = xy$y - yinset
             yb = xy$y - yinset - (bar.height * (i / seg.num))
             yv = xy$y - yinset - (bar.height * ((2*i-1)/(2*seg.num)))
         }

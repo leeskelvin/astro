@@ -4,6 +4,14 @@ aplot = function(x, y = NULL, z = NULL, type = "p", log = "", ..., axes = TRUE, 
     
     zrange = apoints(x=x, y=y, z=z, type=type, col=col, scale.type=scale.type, scale.mode=scale.mode, scale.lo=scale.lo, scale.hi=scale.hi, scale.pow=scale.pow, col.map=col.map, col.alpha=col.alpha, col.invert=col.invert, ...)
     
+    if(axes){
+        
+        box(bty=bty, col=col.box, lty=lty.box, lwd=lwd.box)
+        
+        aaxes(side=side, xat=xat, yat=yat, labels=labels, tick=tick, lwd=lwd, lwd.ticks=lwd.ticks, xformat=xformat, yformat=yformat, xdigits=xdigits, ydigits=ydigits, xnmin=xnmin, ynmin=ynmin, xunlog=xunlog, yunlog=yunlog, las=las, lend=lend, mgp=mgp, tcl=tcl, tcl.min=tcl.min)
+        
+    }
+    
     if(is.logical(cb[1])){
         if(cb[1]){
             cb = formals(col.bar)
@@ -27,14 +35,6 @@ aplot = function(x, y = NULL, z = NULL, type = "p", log = "", ..., axes = TRUE, 
         cbd = formals(col.bar)
         cb = c(cb, cbd[which(!names(cbd) %in% names(cb))])
         do.call(col.bar, args=as.list(cb))
-    }
-    
-    if(axes){
-        
-        box(bty=bty, col=col.box, lty=lty.box, lwd=lwd.box)
-        
-        aaxes(side=side, xat=xat, yat=yat, labels=labels, tick=tick, lwd=lwd, lwd.ticks=lwd.ticks, xformat=xformat, yformat=yformat, xdigits=xdigits, ydigits=ydigits, xnmin=xnmin, ynmin=ynmin, xunlog=xunlog, yunlog=yunlog, las=las, lend=lend, mgp=mgp, tcl=tcl, tcl.min=tcl.min)
-        
     }
     
 }
