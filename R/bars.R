@@ -1,6 +1,5 @@
 bars = function(x, y, width, anchor = 1, joined = FALSE, col = "grey75", border = NA, ljoin = 1, ...){
     
-    
     # unlog
     opar = par()
     xy = pos2xy(x=x, y=y, inset=0)
@@ -19,8 +18,8 @@ bars = function(x, y, width, anchor = 1, joined = FALSE, col = "grey75", border 
     if(missing(width) & anchor %in% c(2,4)){width = c(diff(xy$y)[1],diff(xy$y))}
     if(any(is.na(width))){width[is.na(width)] = 1}
     bhw = rep(width, length(xy$x))[1:length(xy$x)] / 2
-    base = switch(anchor, par("usr")[3], par("usr")[1], par("usr")[4], par("usr")[2])
-    obase = switch(anchor, base/10, base/10, base*10, base*10)
+    xusr = c(extendrange(opar$usr[1:2],f=0.1), extendrange(opar$usr[3:4],f=0.1))
+    obase = switch(anchor, xusr[3], xusr[1], xusr[4], xusr[2])
     
     # define xy coords
     if(anchor %in% c(1,3)){
