@@ -1,4 +1,4 @@
-col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip = FALSE, inset = 0.5, horizontal = FALSE, bar.length = 0.9, seg.num = 9, seg.width = 1.5, seg.gap = 0.5, scale.type = "lin", scale.lo = 0, scale.hi = 1, scale.pow = 0.5, col.map = "rainbow", col.alpha = 1, col.invert = FALSE, cex = 1, bar.lwd = 1, bar.lty = 1, bar.col = "grey25", seg.lwd = 0, seg.lty = 2, seg.col = "grey25", bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25"){
+col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip = FALSE, inset = 0.5, horizontal = FALSE, bar.length = 0.9, seg.num = 9, seg.width = 1, seg.gap = 0.5, scale.type = "lin", scale.lo = 0, scale.hi = 1, scale.pow = 0.5, col.map = "rainbow", col.alpha = 1, col.invert = FALSE, cex = 1, bar.lwd = 1, bar.lty = 1, bar.col = "grey25", seg.lwd = 0, seg.lty = 2, seg.col = "grey25", bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25"){
     
     # unlog & xpd
     opar = par()
