@@ -1,5 +1,12 @@
 bars = function(x, y, width, anchor = 1, joined = FALSE, col = "grey75", border = NA, ljoin = 1, ...){
     
+    # work with default hist output
+    if(class(x) == "histogram"){
+        if(missing(width)){width = diff(x$breaks)[1]}
+        if(missing(y)){y = x$counts}
+        x = x$mids
+    }
+    
     # unlog
     opar = par()
     xy = pos2xy(x=x, y=y, inset=0)
