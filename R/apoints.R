@@ -1,12 +1,14 @@
-apoints = function(x, y = NULL, z = NULL, type = "p", col = NULL, scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, col.map = "rainbow", col.alpha = 1, col.invert = FALSE, ...){
+apoints = function(x, y = NULL, z = NULL, type = "p", col = NULL, scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, col.map = "rainbow", col.alpha = NA, col.invert = FALSE, ...){
     
     ref = NULL
     if(is.null(z) & is.null(col)){col = 1}
     
     if(!is.null(col)){
         
-        hsvmat = rgb2hsv(col2rgb(col))
+        rgbamat = col2rgb(col,alpha=TRUE)
+        hsvmat = rgb2hsv(rgbamat[-4,])
         if(col.invert){hsvmat["h",] = (hsvmat["h",]+0.5)%%1}
+        if(is.na(col.alpha)){col.alpha = rgbamat["alpha",]/255}
         col = hsv(h=hsvmat["h",], s=hsvmat["s",], v=hsvmat["v",], alpha=col.alpha)
         
     }else if(!is.null(z)){
@@ -49,6 +51,7 @@ apoints = function(x, y = NULL, z = NULL, type = "p", col = NULL, scale.type = "
         }
         
         # final colours
+        if(is.na(col.alpha)){col.alpha = 1}
         col = hsv(h=hsvmat["h",], s=hsvmat["s",], v=hsvmat["v",], alpha=col.alpha)
         
     }
