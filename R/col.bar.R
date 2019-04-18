@@ -58,6 +58,7 @@ col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip =
     }else if(col.map == "cm"){
         hsvmat = rgb2hsv(col2rgb(cm.colors(256)[input.rescaled + 1]))
     }
+    if(is.na(col.alpha)){col.alpha = 1}
     col = hsv(h=hsvmat["h",], s=hsvmat["s",], v=hsvmat["v",], alpha=col.alpha) 
     
     # lengths
