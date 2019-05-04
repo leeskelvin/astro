@@ -39,7 +39,7 @@ apoints = function(x, y = NULL, z = NULL, type = "p", col = NULL, scale.type = "
         }else if(col.map == "sls"){
             hsvmat = rgb2hsv(col2rgb(sls(256)[input.rescaled + 1]))
         }else if(col.map == "rainbow"){
-            hsvmat = rgb2hsv(col2rgb(rainbow(256,start=0,end=2/3)[input.rescaled + 1]))
+            hsvmat = rgb2hsv(col2rgb(rev(rainbow(256,start=0,end=5/6))[input.rescaled + 1]))
         }else if(col.map == "heat"){
             hsvmat = rgb2hsv(col2rgb(heat.colors(256)[input.rescaled + 1]))
         }else if(col.map == "terrain"){

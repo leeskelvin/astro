@@ -39,7 +39,7 @@ col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip =
     if(col.invert){input.rescaled = 255 - input.rescaled}
     
     # hsv colour matrix and final colours
-    if(col.map == "grey" | col.map == "gray"){
+    if(col.map == "grey" | col.map == "gray" | col.map == "rgb"){
         hsvmat = rgb2hsv(
             r=round(as.vector(input.rescaled))
             ,g=round(as.vector(input.rescaled))
@@ -48,7 +48,7 @@ col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip =
     }else if(col.map == "sls"){
         hsvmat = rgb2hsv(col2rgb(sls(256)[input.rescaled + 1]))
     }else if(col.map == "rainbow"){
-        hsvmat = rgb2hsv(col2rgb(rainbow(256,start=0,end=2/3)[input.rescaled + 1]))
+        hsvmat = rgb2hsv(col2rgb(rev(rainbow(256,start=0,end=5/6))[input.rescaled + 1]))
     }else if(col.map == "heat"){
         hsvmat = rgb2hsv(col2rgb(heat.colors(256)[input.rescaled + 1]))
     }else if(col.map == "terrain"){

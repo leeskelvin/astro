@@ -1,22 +1,30 @@
-aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xlo = xcen-((xdim-1)/2), xhi = xcen+((xdim-1)/2), ylo = ycen-((ydim-1)/2), yhi = ycen+((ydim-1)/2), scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, scale.probs = NULL, col.map = "rgb", col.alpha = 1, col.invert = FALSE, smooth.fwhm = 0, smooth.filter = "gauss", desat.limit = 0, desat.fwhm = 3, desat.filter = "gauss", padvalue = NA, asp = 1, ...){
+aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xlo = xcen-((xdim-1)/2), xhi = xcen+((xdim-1)/2), ylo = ycen-((ydim-1)/2), yhi = ycen+((ydim-1)/2), scale.type = "lin", scale.mode = 100, scale.lo = NA, scale.hi = NA, scale.pow = 0.5, scale.probs = NULL, col.map = "rgb", col.alpha = 1, col.invert = FALSE, cb = FALSE, smooth.fwhm = 0, smooth.filter = "gauss", desat.limit = 0, desat.fwhm = 3, desat.filter = "gauss", padvalue = NA, asp = 1, ...){
     
     # library(astro); input=c("calexp-HSC-I-8283-38.stamp.fits","calexp-HSC-R-8283-38.stamp.fits","calexp-HSC-G-8283-38.stamp.fits"); hdu = 1; xcen = NA; ycen = NA; xdim = NA; ydim = 11; xlo = 3; xhi = 11; ylo = NA; yhi = NA; scale.type = "log"; scale.mode = 99.5; scale.lo = NA; scale.hi = NA; scale.pow = 0.5; scale.probs = seq(0,1,by=0.5); col.map = "rgb"; col.alpha=1; col.invert = FALSE; smooth.fwhm = 1; smooth.filter = "gauss"; desat.limit = 0.15; desat.fwhm = 3; desat.filter = "gauss"; padvalue = NA; asp = 1; i = 1
     
     # force convert to list
-    if(typeof(input)=="double" | typeof(input)=="integer"){
+    #if(typeof(input)=="double" | typeof(input)=="integer"){
+    if(class(input)!="list"){
         input = list(input)
     }
     if(typeof(input)=="character"){
         input = as.list(input)
     }
     
-    # read FITS files and assign row/column names
+    # read FITS files, convert data frames to matrices, and assign row/column names
     for(i in 1:length(input)){
         if(typeof(input[[i]]) == "character"){
             input[[i]] = read.fits(input[[i]], hdu=rep(hdu,length(input))[i])$dat[[1]]
         }
-        if(is.null(rownames(input[[i]]))){rownames(input[[i]]) = 1:nrow(input[[i]])}
-        if(is.null(colnames(input[[i]]))){colnames(input[[i]]) = 1:ncol(input[[i]])}
+        if(class(input[[i]]) == "data.frame"){
+            input[[i]] = as.matrix(input[[i]])
+        }
+        inputrownames = suppressWarnings(as.numeric(rownames(input[[i]])))
+        inputcolnames = suppressWarnings(as.numeric(colnames(input[[i]])))
+        if(any(is.na(inputrownames)) | length(inputrownames)==0){inputrownames = 1:nrow(input[[i]])}
+        if(any(is.na(inputcolnames)) | length(inputcolnames)==0){inputcolnames = 1:ncol(input[[i]])}
+        rownames(input[[i]]) = inputrownames
+        colnames(input[[i]]) = inputcolnames
     }
     
     # trim image dimensions (if required)
@@ -157,7 +165,7 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xl
     }else if(col.map == "sls"){
         hsvmat = rgb2hsv(col2rgb(sls(256)[input.rescaled[[1]] + 1]))
     }else if(col.map == "rainbow"){
-        hsvmat = rgb2hsv(col2rgb(rainbow(256)[input.rescaled[[1]] + 1]))
+        hsvmat = rgb2hsv(col2rgb(rev(rainbow(256,start=0,end=5/6))[input.rescaled[[1]] + 1]))
     }else if(col.map == "heat"){
         hsvmat = rgb2hsv(col2rgb(heat.colors(256)[input.rescaled[[1]] + 1]))
     }else if(col.map == "terrain"){
@@ -182,6 +190,33 @@ aimage = function(input, hdu = 1, xcen = NA, ycen = NA, xdim = NA, ydim = NA, xl
     y = as.numeric(colnames(input.rescaled[[1]]))
     col = hsv(h=hsvmat["h",], s=hsvmat["s",], v=hsvmat["v",], alpha=col.alpha)
     image(x=x, y=y, z=matrix(1:length(col),nrow=nrow(input.rescaled[[1]]),ncol=ncol(input.rescaled[[1]])), col=col, asp=asp, ...)
+    
+    # colour bar?
+    zrange = tone.unmap(probs=c(0,1), lo=mean(zlos), hi=mean(zhis), scale.type=scale.type, scale.pow=scale.pow)
+    if(is.logical(cb[1])){
+        if(cb[1]){
+            cb = formals(col.bar)
+            cb$scale.lo = zrange[1]
+            cb$scale.hi = zrange[2]
+            cb$scale.type = scale.type
+            cb$scale.pow = scale.pow
+            cb$col.map = col.map
+            cb$col.alpha = col.alpha
+            cb$col.invert = col.invert
+        }
+    }
+    if(is.list(cb)){
+        if(!"scale.lo" %in% names(cb)){cb = c(cb,scale.lo=zrange[1])}
+        if(!"scale.hi" %in% names(cb)){cb = c(cb,scale.hi=zrange[2])}
+        if(!"scale.type" %in% names(cb)){cb = c(cb,scale.type=scale.type)}
+        if(!"scale.pow" %in% names(cb)){cb = c(cb,scale.pow=scale.pow)}
+        if(!"col.map" %in% names(cb)){cb = c(cb,col.map=col.map)}
+        if(!"col.alpha" %in% names(cb)){cb = c(cb,col.alpha=col.alpha)}
+        if(!"col.invert" %in% names(cb)){cb = c(cb,col.invert=col.invert)}
+        cbd = formals(col.bar)
+        cb = c(cb, cbd[which(!names(cbd) %in% names(cb))])
+        do.call(col.bar, args=as.list(cb))
+    }
     
     # return reference quantiles?
     if(!is.null(scale.probs)){

@@ -4,7 +4,7 @@ aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks
     xusr = ifelse(rep(par("xlog"),2),10^par("usr")[1:2],par("usr")[1:2])
     yusr = ifelse(rep(par("ylog"),2),10^par("usr")[3:4],par("usr")[3:4])
     usr.real = switch(side, xusr, yusr, xusr, yusr)
-    usr.reals = approx(usr.real, n=1001)$y
+    usr.reals = approx(usr.real, n=10001)$y
     usr.funcs = suppressWarnings(fn(usr.reals))
     bad = which(is.na(usr.funcs))
     if(length(bad) > 0){usr.reals = usr.reals[-bad]; usr.funcs = usr.funcs[-bad]}
@@ -20,7 +20,7 @@ aaxis = function(side, at = NULL, labels = TRUE, tick = TRUE, lwd = 0, lwd.ticks
         at = (floor(usr.func[1])-stepsign) : (ceiling(usr.func[2])+stepsign)
     }
     if(islogged | unlog){
-        usr.reals = approx(x=c(usr.real[1]/10,usr.real[2]*10), n=1001)$y
+        usr.reals = approx(x=c(usr.real[1]/10,usr.real[2]*10), n=10001)$y
         xusr.funcs = suppressWarnings(fn(usr.reals))
         bad = which(is.na(xusr.funcs))
         if(length(bad) > 0){usr.reals = usr.reals[-bad]; xusr.funcs = xusr.funcs[-bad]}

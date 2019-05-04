@@ -1,8 +1,8 @@
-alegend = function(x, y = NULL, legend, type = list(), inset = 0.5, seg.len = 1.5, seg.gap = 0.5, cex = 1, bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25", ...){
+alegend = function(x, y = NULL, legend, type = setNames(apply(cbind(lty=rep(1,length(legend))), 1, as.list),rep("l",length(legend))), inset = 0.5, outer = FALSE, seg.len = 1.5, seg.gap = 0.5, cex = 1, bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25", box.pad = 0, ncol = 1, byrow = FALSE, ...){
     
     # unlog
     opar = par()
-    xy = pos2xy(x=x, y=y, inset=inset)
+    xy = pos2xy(x=x, y=y, inset=inset, outer=outer)
     if(opar$xlog){
         xy$x = log10(xy$x)
         par("xlog"=FALSE)
@@ -13,13 +13,23 @@ alegend = function(x, y = NULL, legend, type = list(), inset = 0.5, seg.len = 1.
     }
     par("usr"=opar$usr)
     
+    # legend matrix
+    legncol = pmin(ncol, length(legend))
+    legend.pad = rep(NA, len=legncol*ceiling(length(legend)/legncol))
+    legend.pad[1:length(legend)] = legend
+    legmat = matrix(legend.pad, ncol=legncol, byrow=byrow)
+    badcols = which(as.logical(floor(colSums(apply(rbind(legmat,NA), 2, is.na)) / (nrow(legmat)+1))))
+    if(length(badcols)>0){legmat = legmat[,-badcols]}
+    legord = matrix(1:length(legmat), ncol=ncol(legmat), byrow=byrow)
+    if(any(is.na(legmat))){legord[is.na(legmat)] = NA}
+    
     # lengths
     cfr = par("pin") / (par("cin")[2])
     pxy = diff(par("usr"))[c(1,3)]
-    ixy = (pxy / cfr) * cex
-    textmax = max(as.numeric(lapply(legend, strwidth, cex=cex)))
-    boxheight = length(legend)*ixy[2] + ixy[2]/7.5
-    boxwidth = textmax + seg.len*ixy[1] + seg.gap*ixy[1] + ixy[1]/3.25
+    ixy = (pxy / cfr) * cex # one character height in units of x/y axis units
+    textmax = apply(apply(rbind(legmat,NA), 2, strwidth, cex=cex), 2, max)
+    boxheight = nrow(legmat)*ixy[2] + ixy[2]/7.5 + 2*box.pad*ixy[2]
+    boxwidth = sum(ixy[1]/2 + seg.len*ixy[1] + seg.gap*ixy[1] + textmax) + 2*box.pad*ixy[1]
     
     # positional corrections
     if(is.character(x)){
@@ -35,50 +45,61 @@ alegend = function(x, y = NULL, legend, type = list(), inset = 0.5, seg.len = 1.
     }
     
     # points/text
-    for(i in 1:length(legend)){
+    for(i in 1:ncol(legmat)){
         
-        # xy positions
-        xinset = ixy[1] / 5
-        yinset = ixy[2] / 1.75
-        fillhalfheight = ixy[2] / 2.5
-        xl = xy$x + xinset
-        xm = xy$x + xinset + seg.len*ixy[1]/2
-        xr = xy$x + xinset + seg.len*ixy[1]
-        xt = xy$x + xinset + seg.len*ixy[1] + seg.gap*ixy[1]
-        ym = xy$y - yinset - (i-1)*ixy[2]
-        yt = xy$y - yinset - (i-1)*ixy[2] + fillhalfheight
-        yb = xy$y - yinset - (i-1)*ixy[2] - fillhalfheight
-        xlb = xl # xm - fillhalfheight
-        xrb = xr # xm + hillhalfheight
-        
-        # subscript/superscript text offset correction
-        yoffset = subadd = supadd = 0
-        if(typeof(legend[[i]]) == "language"){
-            hassub = length(grep("\\[",legend[[i]])) > 0
-            hassup = length(grep("\\^",legend[[i]])) > 0
-            if(hassub){subadd = strheight(bquote(x[3]),cex=cex)-strheight(bquote(x),cex=cex)}
-            totheight = strheight(legend[[i]],cex=cex)
-            trueheight = strheight(bquote(.(gsub("\\^","",paste(gsub("\n", "", legend[[i]]),collapse="")))),cex=cex)
-            if(hassup){supadd = totheight - trueheight - subadd}
-            if(hassub){yoffset = yoffset - subadd/2}
-            if(hassup){yoffset = yoffset + supadd/2}
+        for(j in 1:nrow(legmat)){
+            
+            if(!is.na(legord[j,i])){
+                
+                # xy positions
+                xinset = (ixy[1] / 3.5) + box.pad*ixy[1]
+                if(i > 1){
+                    xinset = xinset + sum(textmax[1:(i-1)]) + ((i-1)*(ixy[1]/2 + seg.len*ixy[1] + seg.gap*ixy[1]))
+                }
+                yinset = (ixy[2] / 1.75) + box.pad*ixy[2]
+                fillhalfheight = ixy[2] / 2.5
+                xl = xy$x + xinset
+                xm = xy$x + xinset + seg.len*ixy[1]/2
+                xr = xy$x + xinset + seg.len*ixy[1]
+                xt = xy$x + xinset + seg.len*ixy[1] + seg.gap*ixy[1]
+                ym = xy$y - yinset - (j-1)*ixy[2]
+                yt = xy$y - yinset - (j-1)*ixy[2] + fillhalfheight
+                yb = xy$y - yinset - (j-1)*ixy[2] - fillhalfheight
+                xlb = xl # xm - fillhalfheight
+                xrb = xr # xm + hillhalfheight
+                
+                # subscript/superscript text offset correction
+                yoffset = subadd = supadd = 0
+                if(typeof(legmat[j,i][[1]]) == "language"){
+                    hassub = length(grep("\\[",legmat[j,i][[1]])) > 0
+                    hassup = length(grep("\\^",legmat[j,i][[1]])) > 0
+                    if(hassub){subadd = strheight(bquote(x[3]),cex=cex)-strheight(bquote(x),cex=cex)}
+                    totheight = strheight(legmat[j,i][[1]],cex=cex)
+                    trueheight = strheight(bquote(.(gsub("\\^","",paste(gsub("\n", "", legmat[j,i][[1]]),collapse="")))),cex=cex)
+                    if(hassup){supadd = totheight - trueheight - subadd}
+                    if(hassub){yoffset = yoffset - subadd/2}
+                    if(hassup){yoffset = yoffset + supadd/2}
+                }
+                
+                # line/point/fill
+                if(length(type) >= legord[j,i]){
+                    if(names(type)[legord[j,i]] == "l" | names(type)[legord[j,i]] == "b"){
+                        do.call(what=lines, args=c(list(x=c(xl,xr), y=c(ym,ym)), type[[legord[j,i]]]))
+                    }
+                    if(names(type)[legord[j,i]] == "p" | names(type)[legord[j,i]] == "b"){
+                        do.call(what=points, args=c(list(x=xm, y=ym), type[[legord[j,i]]]))
+                    }
+                    if(names(type)[legord[j,i]] == "f"){
+                        do.call(what=apolygon, args=c(list(x=c(xlb,xlb,xrb,xrb), y=c(yb,yt,yt,yb)), type[[legord[j,i]]]))
+                    }
+                }
+                
+                # text
+                text(x=xt, y=ym+yoffset, labels=bquote(.(legmat[j,i][[1]])), adj=c(0,0.5), cex=cex)
+                
+            }
+            
         }
-        
-        # line/point/fill
-        if(length(type) >= i){
-            if(names(type)[i] == "l" | names(type)[i] == "b"){
-                do.call(what=lines, args=c(list(x=c(xl,xr), y=c(ym,ym)), type[[i]]))
-            }
-            if(names(type)[i] == "p" | names(type)[i] == "b"){
-                do.call(what=points, args=c(list(x=xm, y=ym), type[[i]]))
-            }
-            if(names(type)[i] == "f"){
-                do.call(what=apolygon, args=c(list(x=c(xlb,xlb,xrb,xrb), y=c(yb,yt,yt,yb)), type[[i]]))
-            }
-        }
-        
-        # text
-        text(x=xt, y=ym+yoffset, labels=bquote(.(legend[[i]])), adj=c(0,0.5), cex=cex)
         
     }
     
