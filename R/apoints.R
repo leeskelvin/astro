@@ -57,7 +57,14 @@ apoints = function(x, y = NULL, z = NULL, type = "p", col = NULL, scale.type = "
     }
     
     # points & return
-    points(x=x, y=y, type=type, col=col, ...)
+    if(class(x) == "function"){
+        xx = seq(0,1,len=101)
+        yy = x(xx)
+    }else{
+        xx = x
+        yy = y
+    }
+    points(x=xx, y=yy, type=type, col=col, ...)
     if(!is.null(ref)){return(ref)}
     
 }

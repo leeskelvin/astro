@@ -1,4 +1,4 @@
-alegend = function(x, y = NULL, legend, type = setNames(apply(cbind(lty=rep(1,length(legend))), 1, as.list),rep("l",length(legend))), inset = 0.5, outer = FALSE, seg.len = 1.5, seg.gap = 0.5, cex = 1, bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25", box.pad = 0, ncol = 1, byrow = FALSE, ...){
+alegend = function(x, y = NULL, legend, type = setNames(apply(cbind(lty=rep(1,length(legend))), 1, as.list),rep("l",length(legend))), inset = 0.5, outer = FALSE, seg.len = 1.5, seg.gap = 0.5, line.spacing = 1, cex = 1, bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25", box.pad = 0, ncol = 1, byrow = FALSE, ...){
     
     # unlog
     opar = par()
@@ -28,7 +28,7 @@ alegend = function(x, y = NULL, legend, type = setNames(apply(cbind(lty=rep(1,le
     pxy = diff(par("usr"))[c(1,3)]
     ixy = (pxy / cfr) * cex # one character height in units of x/y axis units
     textmax = apply(apply(rbind(legmat,NA), 2, strwidth, cex=cex), 2, max)
-    boxheight = nrow(legmat)*ixy[2] + ixy[2]/7.5 + 2*box.pad*ixy[2]
+    boxheight = (nrow(legmat)-1)*ixy[2]*line.spacing + 1*ixy[2] + ixy[2]/7.5 + 2*box.pad*ixy[2]
     boxwidth = sum(ixy[1]/2 + seg.len*ixy[1] + seg.gap*ixy[1] + textmax) + 2*box.pad*ixy[1]
     
     # positional corrections
@@ -57,16 +57,14 @@ alegend = function(x, y = NULL, legend, type = setNames(apply(cbind(lty=rep(1,le
                     xinset = xinset + sum(textmax[1:(i-1)]) + ((i-1)*(ixy[1]/2 + seg.len*ixy[1] + seg.gap*ixy[1]))
                 }
                 yinset = (ixy[2] / 1.75) + box.pad*ixy[2]
-                fillhalfheight = ixy[2] / 2.5
+                fillhalfheight = (line.spacing*ixy[2]) / 2.5
                 xl = xy$x + xinset
                 xm = xy$x + xinset + seg.len*ixy[1]/2
                 xr = xy$x + xinset + seg.len*ixy[1]
                 xt = xy$x + xinset + seg.len*ixy[1] + seg.gap*ixy[1]
-                ym = xy$y - yinset - (j-1)*ixy[2]
-                yt = xy$y - yinset - (j-1)*ixy[2] + fillhalfheight
-                yb = xy$y - yinset - (j-1)*ixy[2] - fillhalfheight
-                xlb = xl # xm - fillhalfheight
-                xrb = xr # xm + hillhalfheight
+                ym = xy$y - yinset - (j-1)*ixy[2]*line.spacing
+                yt = xy$y - yinset - (j-1)*ixy[2]*line.spacing + fillhalfheight
+                yb = xy$y - yinset - (j-1)*ixy[2]*line.spacing - fillhalfheight
                 
                 # subscript/superscript text offset correction
                 yoffset = subadd = supadd = 0
@@ -90,7 +88,7 @@ alegend = function(x, y = NULL, legend, type = setNames(apply(cbind(lty=rep(1,le
                         do.call(what=points, args=c(list(x=xm, y=ym), type[[legord[j,i]]]))
                     }
                     if(names(type)[legord[j,i]] == "f"){
-                        do.call(what=apolygon, args=c(list(x=c(xlb,xlb,xrb,xrb), y=c(yb,yt,yt,yb)), type[[legord[j,i]]]))
+                        do.call(what=apolygon, args=c(list(x=c(xl,xl,xr,xr), y=c(yb,yt,yt,yb)), type[[legord[j,i]]]))
                     }
                 }
                 
