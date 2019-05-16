@@ -1,4 +1,4 @@
-apolygon = function(x, y, ...){
+apolygon = function(x, y = NULL, ...){
     
     # unlog
     opar = par()
@@ -9,7 +9,7 @@ apolygon = function(x, y, ...){
         par("xlog"=FALSE)
     }
     if(opar$ylog){
-        yy = log10(y)
+        if(!is.null(y)){yy = log10(y)}
         par("ylog"=FALSE)
     }
     par("usr"=opar$usr)
