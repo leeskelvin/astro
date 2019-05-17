@@ -78,3 +78,39 @@ sersic.mu2r2 = function(mu, n = 1, re = 1, mu.ref = 0, r.ref = re){
     return(r)
 }
 
+sersic.Ie2Lr = function(r, Ie = 1, n = 1, re = 1){
+    innerfunc = function(r, Ie, n, re){
+        bn = qgamma(0.5,2*n)
+        x = bn * ((r/re)^(1/n))
+        incgam = pgamma(x,2*n)
+        lum = Ie * re^2 * 2 * pi * n * ((exp(bn)) / ((bn)^(2*n))) * incgam
+        return(lum)
+    }
+    return(sapply(X=r, FUN=innerfunc, Ie=Ie, n=n, re=re))
+}
+
+sersic.Lr2Ie = function(r, Lr = 1, n = 1, re = 1){
+    innerfunc = function(r, Lr, n, re){
+        bn = qgamma(0.5,2*n)
+        x = bn * ((r/re)^(1/n))
+        incgam = pgamma(x,2*n)
+        Ie = Lr / ( re^2 * 2 * pi * n * ((exp(bn)) / ((bn)^(2*n))) * incgam )
+        return(Ie)
+    }
+    return(sapply(X=r, FUN=innerfunc, Lr=Lr, n=n, re=re))
+}
+
+sersic.Ie2L = function(Ie, n = 1, re = 1){
+    bn = qgamma(0.5,2*n)
+    comgam = gamma(2*n)
+    lum = Ie * re^2 * 2 * pi * n * ((exp(bn)) / ((bn)^(2*n))) * comgam
+    return(lum)
+}
+
+sersic.L2Ie = function(L, n = 1, re = 1){
+    bn = qgamma(0.5,2*n)
+    comgam = gamma(2*n)
+    Ie = L / ( re^2 * 2 * pi * n * ((exp(bn)) / ((bn)^(2*n))) * comgam )
+    return(Ie)
+}
+

@@ -1,4 +1,4 @@
-col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip = FALSE, inset = 0.5, horizontal = FALSE, bar.length = 0.9, seg.num = 9, seg.width = 1, seg.gap = 0.5, scale.type = "lin", scale.lo = 0, scale.hi = 1, scale.pow = 0.5, col.map = "rainbow", col.alpha = 1, col.invert = FALSE, cex = 1, bar.lwd = 1, bar.lty = 1, bar.col = "grey25", seg.lwd = 0, seg.lty = 2, seg.col = "grey25", bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25"){
+col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip = FALSE, inset = 0.5, horizontal = FALSE, bar.length = 0.9, seg.num = 9, seg.width = 1, seg.gap = 0.5, scale.type = "lin", scale.lo = 0, scale.hi = 1, scale.pow = 0.5, col.map = "rainbow", col.alpha = 1, col.invert = FALSE, cex = 1, bar.lwd = 1, bar.lty = 1, bar.col = "grey25", seg.lwd = 0, seg.lty = 2, seg.col = "grey25", bty = "n", bg = "white", box.lwd = 1, box.lty = 1, box.col = "grey25", box.pad = 0){
     
     # unlog & xpd
     opar = par()
@@ -65,19 +65,18 @@ col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip =
     cfr = par("pin") / (par("cin")[2])
     pxy = diff(par("usr"))[c(1,3)]
     ixy = (pxy / cfr) * cex
-    xinset = ixy[1] / 1.5
-    yinset = ixy[2] / 1.5
+    boxpad = rep(box.pad,2)[1:2]
     if(horizontal){
         textmax = max(as.numeric(lapply(ref, strheight, cex=cex)))
-        boxwidth = bar.length * pxy[1]
-        boxheight = textmax + seg.width*ixy[2] + sign(n)*seg.gap*ixy[2] + 2*yinset
-        bar.height = (bar.length * pxy[1]) - (2 * xinset)
+        boxwidth = (bar.length * pxy[1]) + (2 * boxpad[1] * ixy[1])
+        boxheight = textmax + seg.width*ixy[2] + sign(n)*seg.gap*ixy[2] + (2 * ixy[2] / 1.5) + (2 * boxpad[2] * ixy[2])
+        bar.height = (bar.length * pxy[1]) - (2 * ixy[1] / 1.5)
         text.adj = ifelse(c(flip,flip),c(0.5,0),c(0.5,1))
     }else{
         textmax = max(as.numeric(lapply(ref, strwidth, cex=cex)))
-        boxwidth = textmax + seg.width*ixy[1] + sign(n)*seg.gap*ixy[1] + 2*xinset
-        boxheight = bar.length*pxy[2]
-        bar.height = (bar.length * pxy[2]) - (2 * yinset)
+        boxwidth = textmax + seg.width*ixy[1] + sign(n)*seg.gap*ixy[1] + (2 * ixy[1] / 1.5) + (2 * boxpad[1] * ixy[1])
+        boxheight = (bar.length * pxy[2]) + (2 * boxpad[2] * ixy[2])
+        bar.height = (bar.length * pxy[2]) - (2 * ixy[2] / 1.5)
         text.adj = ifelse(c(flip,flip),c(1,0.5),c(0,0.5))
         col = rev(col)
         ref = rev(ref)
@@ -100,6 +99,8 @@ col.bar = function(x = "right", y = NULL, n = 5, format = NA, digits = 2, flip =
     for(i in seg.num:1){
         
         # xy positions
+        xinset = (ixy[1] / 1.5) + (boxpad[1] * ixy[1])
+        yinset = (ixy[2] / 1.5) + (boxpad[2] * ixy[2])
         if(horizontal){
             #xl = xy$x + xinset + (bar.height * ((i-1) / seg.num))
             xl = xy$x + xinset

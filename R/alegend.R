@@ -27,9 +27,10 @@ alegend = function(x, y = NULL, legend, type = setNames(apply(cbind(lty=rep(1,le
     cfr = par("pin") / (par("cin")[2])
     pxy = diff(par("usr"))[c(1,3)]
     ixy = (pxy / cfr) * cex # one character height in units of x/y axis units
+    boxpad = rep(box.pad,2)[1:2]
     textmax = apply(apply(rbind(legmat,NA), 2, strwidth, cex=cex), 2, max)
-    boxheight = (nrow(legmat)-1)*ixy[2]*line.spacing + 1*ixy[2] + ixy[2]/7.5 + 2*box.pad*ixy[2]
-    boxwidth = sum(ixy[1]/2 + seg.len*ixy[1] + seg.gap*ixy[1] + textmax) + 2*box.pad*ixy[1]
+    boxheight = (nrow(legmat)-1)*ixy[2]*line.spacing + 1*ixy[2] + ixy[2]/7.5 + 2*boxpad[2]*ixy[2]
+    boxwidth = sum(ixy[1]/2 + seg.len*ixy[1] + seg.gap*ixy[1] + textmax) + 2*boxpad[1]*ixy[1]
     
     # positional corrections
     if(is.character(x)){
@@ -52,11 +53,11 @@ alegend = function(x, y = NULL, legend, type = setNames(apply(cbind(lty=rep(1,le
             if(!is.na(legord[j,i])){
                 
                 # xy positions
-                xinset = (ixy[1] / 3.5) + box.pad*ixy[1]
+                xinset = (ixy[1] / 3.5) + boxpad[1]*ixy[1]
                 if(i > 1){
                     xinset = xinset + sum(textmax[1:(i-1)]) + ((i-1)*(ixy[1]/2 + seg.len*ixy[1] + seg.gap*ixy[1]))
                 }
-                yinset = (ixy[2] / 1.75) + box.pad*ixy[2]
+                yinset = (ixy[2] / 1.75) + boxpad[2]*ixy[2]
                 fillhalfheight = (line.spacing*ixy[2]) / 2.5
                 xl = xy$x + xinset
                 xm = xy$x + xinset + seg.len*ixy[1]/2
