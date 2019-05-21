@@ -1,116 +1,79 @@
-sersic = function(r, fluxfrac, mag = 0, n = 1, re = 1, e = 0){
-    if(missing(r) & missing(fluxfrac)){
-        stop("either r or fluxfrac must be specified!")
-    }else if(missing(r)){
-        bn1 = qgamma(0.5,2*n)
-        bn2 = qgamma(fluxfrac,2*n)
-        r = re*((bn2/bn1)^n)
+# all lengths in pixels
+# all intensities in ADUs
+# a = half-light radius along the semi-major axis [pixels]
+
+sersic2d = function(size = 5, Ie = 1, n = 1, a = 1, e = 0, pa = 0, norm = FALSE, discrete = FALSE){
+    lo = ((size+1)/2) - size
+    hi = size - ((size+1)/2)
+    step = 1
+    if(discrete){
+        lo = lo - 0.45
+        hi = hi + 0.45
+        step = 0.1
+        Ie = Ie / (10*10)
     }
+    x = y = seq(lo, hi, by=step)
+    xy = expand.grid(x,y)
+    Irs = sersic.Ixy(x=xy[,1], y=xy[,2], Ie=Ie, n=n, a=a, e=e, pa=pa)
+    mat = matrix(Irs, length(x), length(y))
+    if(discrete){
+        mat = rowsum(mat, group=ceiling(1:nrow(mat)/10))
+        mat = t(rowsum(t(mat), group=ceiling(1:ncol(mat)/10)))
+    }
+    if(norm){mat = mat / sum(mat)}
+    return(mat)
+}
+
+sersic.Ixy = function(x, y, Ie = 1, n = 1, a = 1, e = 0, pa = 0){
     bn = qgamma(0.5,2*n)
-    lumtot = 1*(re^2)*2*pi*n*((exp(bn))/(bn^(2*n)))*gamma(2*n)*(1-e)
-    magtot = -2.5*log10(lumtot)
-    Ie = 1/(10^(0.4*(mag-magtot)))
-    x = bn*(r/re)^(1/n)
-    lumr = Ie*lumtot*pgamma(x,2*n)
-    intenr = Ie*exp(-bn*(((r/re)^(1/n))-1))
-    lumtot = Ie*lumtot
-    magr = -2.5*log10(lumr)
-    mur = -2.5*log10(intenr)
-    muavgr = -2.5*log10(lumr/(pi*r*r*(1-e)))
-    return(cbind(R=r, FLUXFRAC=lumr/lumtot, MAG=magr, MU=mur, MUAVG=muavgr))
+    pa.rad = pa * (pi/180)
+    xmaj = (x * cos(-pa.rad)) - (y * sin(-pa.rad))
+    xmin = (x * sin(-pa.rad)) + (y * cos(-pa.rad))
+    r = sqrt((xmaj^2) + (xmin/(1-e))^2)
+    Ixy = Ie * exp(-bn * ((r/a)^(1/n) - 1))
+    return(Ixy)
 }
 
-sersic.re2h = function(n, re = 1){
+sersic.Ir = function(r, Ie = 1, n = 1, a = 1){
     bn = qgamma(0.5,2*n)
-    h = re/(bn^n)
-    return(h)
+    Ir = Ie * exp(-bn * ((r/a)^(1/n) - 1))
+    return(Ir)
 }
 
-sersic.h2re = function(n, h = 1){
+sersic.r = function(Ir, Ie = 1, n = 1, a = 1){
     bn = qgamma(0.5,2*n)
-    re = h*(bn^n)
-    return(re)
-}
-
-sersic.r2fluxfrac = function(r, n = 1, r.ref = 1, fluxfrac.ref = 0.5){
-    bn = qgamma(fluxfrac.ref,2*n)
-    x = bn*(r/r.ref)^(1/n)
-    fluxfrac = pgamma(x,2*n)
-    return(fluxfrac)
-}
-
-sersic.fluxfrac2r = function(fluxfrac, n = 1, r.ref = 1, fluxfrac.ref = 0.5){
-    bn1 = qgamma(fluxfrac.ref,2*n)
-    bn2 = qgamma(fluxfrac,2*n)
-    r = r.ref*((bn2/bn1)^n)
+    r = a * (((log(Ir/Ie))/(-bn))+1)^n
     return(r)
 }
 
-sersic.r2mu = function(r, mag = 0, n = 1, re = 1, e = 0){
+sersic.Lr = function(r, Ie = 1, n = 1, a = 1, e = 0){
     bn = qgamma(0.5,2*n)
-    lumtot = 1*(re^2)*2*pi*n*((exp(bn))/(bn^(2*n)))*gamma(2*n)*(1-e)
-    magtot = -2.5*log10(lumtot)
-    Ie = 1/(10^(0.4*(mag-magtot)))
-    intenr = Ie*exp(-bn*(((r/re)^(1/n))-1))
-    mur = -2.5*log10(intenr)
-    return(mur)
+    x = bn * ((r/a)^(1/n))
+    Lr = Ie * (a*sqrt(1-e))^2 * 2 * pi * n * ((exp(bn))/(bn^(2*n))) * pgamma(x,2*n)
+    return(Lr)
 }
 
-sersic.mu2r = function(mu, mag = 0, n = 1, re = 1, e = 0){
+sersic.Ltot = function(Ie = 1, n = 1, a = 1, e = 0){
     bn = qgamma(0.5,2*n)
-    lumtot = 1*(re^2)*2*pi*n*((exp(bn))/(bn^(2*n)))*gamma(2*n)*(1-e)
-    magtot = -2.5*log10(lumtot)
-    Ie = 1/(10^(0.4*(mag-magtot)))
-    intenr = 10^(-0.4*mu)
-    rmu = re*((((log(intenr/Ie))/(-bn))+1)^n)
-    return(rmu)
+    Ltot = Ie * (a*sqrt(1-e))^2 * 2 * pi * n * ((exp(bn))/(bn^(2*n))) * gamma(2*n)
+    return(Ltot)
 }
 
-sersic.r2mu2 = function(r, n = 1, re = 1, mu.ref = 0, r.ref = re){
+sersic.Ie = function(Ltot, n = 1, a = 1, e = 0){
     bn = qgamma(0.5,2*n)
-    mu = mu.ref + ((2.5*bn)/log(10))*(((r/re)^(1/n))-((r.ref/re)^(1/n)))
-    return(mu)
+    Ie = Ltot / ((a*sqrt(1-e))^2 * 2 * pi * n * ((exp(bn))/(bn^(2*n))) * gamma(2*n))
+    return(Ie)
 }
 
-sersic.mu2r2 = function(mu, n = 1, re = 1, mu.ref = 0, r.ref = re){
+sersic.Ie2I0 = function(Ie, n = 1){
     bn = qgamma(0.5,2*n)
-    r = re * (((((log(10))*(mu-mu.ref))/(2.5*bn)) + ((r.ref/re)^(1/n)))^n)
-    return(r)
+    I0 = Ie * exp(bn)
+    return(I0)
 }
 
-sersic.Ie2Lr = function(r, Ie = 1, n = 1, re = 1){
-    innerfunc = function(r, Ie, n, re){
-        bn = qgamma(0.5,2*n)
-        x = bn * ((r/re)^(1/n))
-        incgam = pgamma(x,2*n)
-        lum = Ie * re^2 * 2 * pi * n * ((exp(bn)) / ((bn)^(2*n))) * incgam
-        return(lum)
-    }
-    return(sapply(X=r, FUN=innerfunc, Ie=Ie, n=n, re=re))
-}
-
-sersic.Lr2Ie = function(r, Lr = 1, n = 1, re = 1){
-    innerfunc = function(r, Lr, n, re){
-        bn = qgamma(0.5,2*n)
-        x = bn * ((r/re)^(1/n))
-        incgam = pgamma(x,2*n)
-        Ie = Lr / ( re^2 * 2 * pi * n * ((exp(bn)) / ((bn)^(2*n))) * incgam )
-        return(Ie)
-    }
-    return(sapply(X=r, FUN=innerfunc, Lr=Lr, n=n, re=re))
-}
-
-sersic.Ie2L = function(Ie, n = 1, re = 1){
+sersic.I02Ie = function(I0, n = 1){
     bn = qgamma(0.5,2*n)
-    comgam = gamma(2*n)
-    lum = Ie * re^2 * 2 * pi * n * ((exp(bn)) / ((bn)^(2*n))) * comgam
-    return(lum)
-}
-
-sersic.L2Ie = function(L, n = 1, re = 1){
-    bn = qgamma(0.5,2*n)
-    comgam = gamma(2*n)
-    Ie = L / ( re^2 * 2 * pi * n * ((exp(bn)) / ((bn)^(2*n))) * comgam )
+    Ie = I0 / exp(bn)
     return(Ie)
 }
 
