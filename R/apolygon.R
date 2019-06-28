@@ -13,6 +13,8 @@ apolygon = function(x, y = NULL, ...){
         par("ylog"=FALSE)
     }
     par("usr"=opar$usr)
+    if(opar$xaxp[3] == 0){opar$xaxp[3] = 1}
+    if(opar$yaxp[3] == 0){opar$yaxp[3] = 1}
     
     # outer buffer limits
     #xusr = c(extendrange(opar$usr[1:2],f=0.1), extendrange(opar$usr[3:4],f=0.1))

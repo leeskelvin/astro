@@ -9,8 +9,8 @@ regrid = function(mat, fact = 0.5){
     # x-expand/y-expand/x-contract/y-contract
     if(ff[1] > 1){out = out[rep(1:nrow(out),each=ff[1]),] / ff[1]}
     if(ff[2] > 1){out = out[,rep(1:ncol(out),each=ff[2])] / ff[2]}
-    if(ff[1] < 1){out = rowsum(out, group=round(seq(1,ceiling(nrow(out)*ff[1]),len=nrow(mat))))}
-    if(ff[2] < 1){out = t(rowsum(t(out), group=round(seq(1,ceiling(ncol(out)*ff[2]),len=ncol(mat)))))}
+    if(ff[1] < 1){out = rowsum(out, group=round(seq(0.5+1e-5,ceiling(nrow(out)*ff[1])+0.5-1e-5,len=nrow(mat))))}
+    if(ff[2] < 1){out = t(rowsum(t(out), group=round(seq(0.5+1e-5,ceiling(ncol(out)*ff[2])+0.5-1e-5,len=ncol(mat)))))}
     
     # rownames/colnames
     if(is.null(rownames(mat))){xr = 1:nrow(mat)}else{xr = rownames(mat)}

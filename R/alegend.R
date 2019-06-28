@@ -12,6 +12,8 @@ alegend = function(x, y = NULL, legend, type = setNames(apply(cbind(lty=rep(1,le
         par("ylog"=FALSE)
     }
     par("usr"=opar$usr)
+    if(opar$xaxp[3] == 0){opar$xaxp[3] = 1}
+    if(opar$yaxp[3] == 0){opar$yaxp[3] = 1}
     
     # legend matrix
     legncol = pmin(ncol, length(legend))
